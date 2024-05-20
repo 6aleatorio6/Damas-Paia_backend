@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model usuario {
+  id      Int       @id @default(autoincrement())
+  nome    String    @unique() @db.VarChar(45)
+  senha   String    @db.VarChar(64)
+  avatar  Bytes
+  jogador jogador[]
+}
+
+model jogador {
+  id         Int     @id @default(autoincrement())
+  usuario_id Int
+  partida_id Int?
+  usuario    usuario @relation(fields: [usuario_id], references: [id])
+  peca       peca[]
+
+  partida            partida?  @relation("jogador_partida", fields: [partida_id], references: [id])
+  vencedorPt_jogador partida[] @relation("vencedorPt_jogador")
+}
+
+model partida {
+  id              Int       @id @unique() @default(autoincrement())
+  vencedor        Int?
+  vez             Int
+  inicio          DateTime  @default(now()) @db.DateTime(0)
+  fim             DateTime? @db.DateTime(0)
+  jogadores       jogador[] @relation("jogador_partida")
+  jogadorVencedor jogador?  @relation("vencedorPt_jogador", fields: [vencedor], references: [id])
+}
+
+model peca {
+  id         Int     @id @default(autoincrement())
+  jogador_id Int
+  co_X       Int
+  co_Y       Int
+  rainha     Boolean @default(false)
+  capturada  Boolean @default(false)
+  jogador    jogador @relation(fields: [jogador_id], references: [id])
+}
