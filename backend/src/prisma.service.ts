@@ -8,6 +8,11 @@ import { Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
+  constructor(options?: ConstructorParameters<typeof PrismaClient>[0]) {
+    super(options);
+    return prismaPaiado(this) as this;
+  }
+
   async onModuleInit() {
     await this.$connect();
   }
