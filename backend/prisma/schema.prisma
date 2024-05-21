@@ -11,7 +11,7 @@ model usuario {
   id      Int       @id @default(autoincrement())
   nome    String    @unique() @db.VarChar(45)
   senha   String    @db.VarChar(64)
-  avatar  Bytes
+  avatar  Bytes?
   jogador jogador[]
 }
 
