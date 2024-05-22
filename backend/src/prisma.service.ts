@@ -8,8 +8,8 @@ import { Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
-  constructor(options?: ConstructorParameters<typeof PrismaClient>[0]) {
-    super(options);
+  constructor() {
+    super();
     return prismaPaiado(this) as this;
   }
 
@@ -29,6 +29,8 @@ export const prismaPaiado = Prisma.defineExtension({
           if (!esseErroSabido)
             throw new HttpException('erro desconhecido do prisma', 500);
 
+          console.log(e.meta);
+
           const sabedoriaSabia = esseErroSabido(
             (e.meta as { modelName: string }).modelName || '',
           );
@@ -47,7 +49,7 @@ type ErrosSabidos = {
 const errosSabidos: ErrosSabidos = {
   P2000: () => [400, `Valor muito longo para este campo.`],
   P2001: (m) => [404, `${m} não encontrado.`],
-  P2002: () => [400, `Email já existe.`],
+  P2002: (m) => [400, `${m} já existe.`],
   P2003: () => [400, `Chave estrangeira inválida.`],
   P2004: () => [400, `Restrição falhou no banco de dados.`],
   P2005: () => [400, `Valor inválido para este campo.`],

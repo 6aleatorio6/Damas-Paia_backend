@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, HttpCode } from '@nestjs/common';
 import { UserService } from './user.service';
-import type { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -12,6 +12,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @HttpCode(201)
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
