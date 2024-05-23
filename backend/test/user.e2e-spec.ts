@@ -62,4 +62,13 @@ describe('AppController (e2e)', () => {
     expect(res.body[0]).toHaveProperty('nome', 'paia');
     expect(res.body[0]).toHaveProperty('id', id);
   });
+
+  it('/user/:id (PUT) ', async () => {
+    const res = await request(app.getHttpServer())
+      .put('/user/' + id)
+      .send({ nome: 'paiaTriste' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('nome', 'paiaTriste');
+  });
 });
