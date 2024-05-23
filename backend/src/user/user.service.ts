@@ -7,19 +7,39 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const user = await this.prisma.usuario.create({
+    return await this.prisma.usuario.create({
       data: createUserDto,
       select: {
         id: true,
         nome: true,
       },
     });
+  }
 
-    return user;
+  async findAll() {
+    return await this.prisma.usuario.findMany({
+      select: {
+        id: true,
+        nome: true,
+        avatar: true,
+        jogador: {
+          select: {
+            id: true,
+            partida_id: true,
+          },
+        },
+        frasesTristes: {
+          select: {
+            frase: true,
+            dataCriacao: true,
+          },
+        },
+      },
+    });
   }
 
   async findOne(id: number) {
-    const user = await this.prisma.usuario.findUniqueOrThrow({
+    return await this.prisma.usuario.findUniqueOrThrow({
       select: {
         id: true,
         nome: true,
@@ -34,7 +54,5 @@ export class UserService {
         id,
       },
     });
-
-    return user;
   }
 }

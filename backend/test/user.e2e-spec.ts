@@ -25,28 +25,41 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  // let resBody: { nome: number; id: string };
+  let id: number;
 
   it('/user (POST)', async () => {
     const res = await request(app.getHttpServer())
       .post('/user')
       .send({ nome: 'paia', senha: 'paia1' });
 
-    // resBody = res.body;
+    id = res.body.id;
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('nome');
   });
 
   it('/user (POST) | nome já usado', async () => {
-    await request(app.getHttpServer())
-      .post('/user')
-      .send({ nome: 'paia', senha: 'paia1' });
     const res = await request(app.getHttpServer())
       .post('/user')
       .send({ nome: 'paia', senha: 'paia1' });
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toHaveProperty('message');
+  });
+
+  it('/user/:id (GET)', async () => {
+    const res = await request(app.getHttpServer()).get('/user/' + id);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('nome', 'paia');
+    expect(res.body).toHaveProperty('id', id);
+  });
+
+  it('/user/ (GET)', async () => {
+    const res = await request(app.getHttpServer()).get('/user');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body[0]).toHaveProperty('nome', 'paia');
+    expect(res.body[0]).toHaveProperty('id', id);
   });
 });
