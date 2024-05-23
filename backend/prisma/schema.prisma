@@ -8,11 +8,21 @@ datasource db {
 }
 
 model usuario {
-  id      Int       @id @default(autoincrement())
-  nome    String    @unique() @db.VarChar(45)
-  senha   String    @db.VarChar(64)
-  avatar  Bytes?
-  jogador jogador[]
+  id            Int             @id @default(autoincrement())
+  nome          String          @unique() @db.VarChar(45)
+  senha         String          @db.VarChar(64)
+  avatar        Bytes?
+  jogador       jogador[]
+  frasesTristes frasesTristes[] @relation("userAutor")
+}
+
+model frasesTristes {
+  id          Int      @id @default(autoincrement())
+  autorId     Int
+  frase       String   @db.VarChar(100)
+  dataCriacao DateTime @default(now())
+
+  autor usuario @relation("userAutor", fields: [autorId], references: [id])
 }
 
 model jogador {
