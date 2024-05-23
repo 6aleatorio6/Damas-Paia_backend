@@ -1,7 +1,7 @@
 import type { usuario } from '@prisma/client';
-import { IsDate, IsInt, IsString, Length } from 'class-validator';
+import { IsBase64, IsDate, IsInt, IsString, Length } from 'class-validator';
 
-export default class UserDto implements Partial<usuario> {
+export default class UserDto implements Partial<Omit<usuario, 'avatar'>> {
   @IsInt()
   id: number;
 
@@ -10,12 +10,12 @@ export default class UserDto implements Partial<usuario> {
   nome: string;
 
   @IsString()
-  @Length(64)
+  @Length(4, 64)
   senha: string;
 
   @IsDate()
   inicioDoPareamento: Date;
 
-  @IsString()
-  avatar?: Buffer;
+  @IsBase64()
+  avatar?: string;
 }
