@@ -37,7 +37,8 @@ export const prismaPaiado = Prisma.defineExtension({
 
 const errosSabidos = (metaError: MetaError) => {
   const { modelName: model, target } = metaError;
-  const col = target.split('_')[1];
+
+  const col = target ? target.split('_')[1] : model;
   return {
     P2000: [400, `Valor muito longo para este campo.`],
     P2001: [404, `${model} não encontrado.`],
