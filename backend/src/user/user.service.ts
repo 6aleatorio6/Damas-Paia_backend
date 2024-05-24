@@ -76,4 +76,16 @@ export class UserService {
       },
     });
   }
+
+  async deleteOne(id: number) {
+    return await this.prisma.usuario.delete({
+      select: {
+        id: true,
+        nome: true,
+      },
+      where: {
+        id,
+      },
+    });
+  }
 }

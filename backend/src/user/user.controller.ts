@@ -7,6 +7,7 @@ import {
   HttpCode,
   Put,
   Request,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -39,8 +40,13 @@ export class UserController {
     return this.userService.update(+req.user.id, updateUser);
   }
 
-  @Get('')
+  @Get()
   findToken(@Request() req) {
     return this.userService.findOne(+req.user.id);
+  }
+
+  @Delete()
+  deleteToken(@Request() req) {
+    return this.userService.deleteOne(+req.user.id);
   }
 }
