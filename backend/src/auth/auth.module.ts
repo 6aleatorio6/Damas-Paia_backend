@@ -5,7 +5,6 @@ import { PrismaService } from '../prisma.service';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
-import { ConfigModule } from '@nestjs/config';
 import { secretJwt } from './auth.decorator';
 
 @Module({
@@ -15,7 +14,6 @@ import { secretJwt } from './auth.decorator';
       secret: secretJwt,
       signOptions: {},
     }),
-    ConfigModule.forRoot({ envFilePath: '../../.env' }),
   ],
   controllers: [AuthController],
   exports: [AuthService],
