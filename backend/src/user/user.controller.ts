@@ -24,17 +24,23 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
-  @Put()
-  update(@Request() req, @Body() updateUser: UpdateUserDto) {
-    return this.userService.update(+req.user.id, updateUser);
-  }
-
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
-  @Get()
+
+  @Get('/all')
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Put()
+  updateToken(@Request() req, @Body() updateUser: UpdateUserDto) {
+    return this.userService.update(+req.user.id, updateUser);
+  }
+
+  @Get('')
+  findToken(@Request() req) {
+    return this.userService.findOne(+req.user.id);
   }
 }
