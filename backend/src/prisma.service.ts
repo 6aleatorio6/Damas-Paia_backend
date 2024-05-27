@@ -1,4 +1,10 @@
-import { HttpException, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Global,
+  HttpException,
+  Injectable,
+  Module,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
@@ -34,6 +40,13 @@ export const prismaPaiado = Prisma.defineExtension({
     },
   },
 });
+
+@Global()
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModuleGlobal {}
 
 const errosSabidos = (metaError: MetaError) => {
   const { modelName: model, target } = metaError;
