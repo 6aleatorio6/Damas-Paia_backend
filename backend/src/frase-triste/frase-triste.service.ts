@@ -14,12 +14,15 @@ export class FraseTristeService {
   }
 
   findAll() {
-    return this.prisma.frasesTristes.findMany();
+    return this.prisma.frasesTristes.findMany({
+      orderBy: { dataCriacao: 'desc' },
+    });
   }
 
   findMyAll(autorId: number) {
     return this.prisma.frasesTristes.findMany({
       where: { autorId },
+      orderBy: { dataCriacao: 'desc' },
     });
   }
 

@@ -10,7 +10,7 @@ export class FraseTristeDto implements Partial<frasesTristes> {
   autorId: number;
 
   @IsString()
-  @Length(10, 100)
+  @Length(5, 100)
   frase: string;
 }
 
