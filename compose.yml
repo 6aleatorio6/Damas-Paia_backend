@@ -6,17 +6,23 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=paia
       - POSTGRES_DB=damas_paia
+
     ports:
       - "5432:5432"
   backend:
     container_name: damas_paia
     build: .
+    stdin_open: true
+    tty: true
     depends_on:
       - db
     ports:
       - "3000:3000"
     volumes:
       - ./:/app
-    stdin_open: true
-    tty: true
-     
+    environment:
+      - DB_USER=root
+      - DB_PASSWORD=paia
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=damas_paia
