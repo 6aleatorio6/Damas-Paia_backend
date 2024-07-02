@@ -18,32 +18,35 @@ export class UserService {
 
   async findOne(uuid: string) {
     const user = await this.usersRepository.findOneBy({ uuid });
-
-    if (!user) throw new NotFoundException('usuario não encontrado');
+    if (!user) throw new NotFoundException('Usuário não encontrado');
 
     return user;
   }
 
-  async create(createUser: CreateUserDto) {
-    await this.existNome(createUser.nome);
-    const user = this.usersRepository.create(createUser);
+  async create(createUserDto: CreateUserDto) {
+    await this.checkIfNomeExists(createUserDto.nome);
 
-    return await this.usersRepository.save(user);
+    const user = this.usersRepository.create(createUserDto);
+
+    await this.usersRepository.save(user);
+
+    return { ...user, senha: undefined };
   }
 
   async update(uuid: string, updateUserDto: UpdateUserDto) {
-    await this.existNome(updateUserDto.nome);
-    return this.usersRepository.update({ uuid }, updateUserDto);
+    await this.checkIfNomeExists(updateUserDto.nome);
+    const result = await this.usersRepository.update({ uuid }, updateUserDto);
+
+    if (!result.affected) throw new NotFoundException('Usuário não encontrado');
   }
 
   async remove(uuid: string) {
     const result = await this.usersRepository.delete({ uuid });
-    if (!result.affected) throw new NotFoundException('usuario não encontrado');
 
-    return { message: 'usuario deletado!' };
+    if (!result.affected) throw new NotFoundException('Usuário não encontrado');
   }
 
-  private async existNome(nome?: string) {
+  private async checkIfNomeExists(nome?: string) {
     const existsNome = await this.usersRepository.existsBy({ nome });
 
     if (existsNome) throw new BadRequestException('Esse nome já existe');

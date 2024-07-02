@@ -6,6 +6,7 @@ import {
   Param,
   Delete,
   Put,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -16,22 +17,34 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return {
+      message: 'usuario criado!',
+      data: await this.userService.create(createUserDto),
+    };
   }
 
   @Get(':uuid')
-  findOne(@Param('uuid') uuid: string) {
-    return this.userService.findOne(uuid);
+  async findOne(@Param('uuid', ParseUUIDPipe) uuid: string) {
+    return {
+      message: 'usuario encontrado!',
+      data: await this.userService.findOne(uuid),
+    };
   }
 
   @Put(':uuid')
-  update(@Param('uuid') uuid: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(uuid, updateUserDto);
+  async update(
+    @Param('uuid', ParseUUIDPipe) uuid: string,
+    @Body() userDto: UpdateUserDto,
+  ) {
+    await this.userService.update(uuid, userDto);
+    return { message: 'usuario atualizado!' };
   }
 
   @Delete(':uuid')
-  remove(@Param('uuid') uuid: string) {
-    return this.userService.remove(uuid);
+  async remove(@Param('uuid', ParseUUIDPipe) uuid: string) {
+    await this.userService.remove(uuid);
+
+    return { message: 'usuario deletado!' };
   }
 }
