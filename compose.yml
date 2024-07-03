@@ -26,3 +26,5 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=damas_paia
+      - HASH_SALT=8
+      - SECRET_JWT=paia
