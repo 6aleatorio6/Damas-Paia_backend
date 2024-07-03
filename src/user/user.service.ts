@@ -17,7 +17,14 @@ export class UserService {
   ) {}
 
   async findOne(uuid: string) {
-    const user = await this.usersRepository.findOneBy({ uuid });
+    const user = await this.usersRepository.findOne({
+      select: {
+        nome: true,
+        uuid: true,
+      },
+      where: { uuid },
+    });
+
     if (!user) throw new NotFoundException('Usuário não encontrado');
 
     return user;
@@ -35,6 +42,7 @@ export class UserService {
 
   async update(uuid: string, updateUserDto: UpdateUserDto) {
     await this.checkIfNomeExists(updateUserDto.nome);
+
     const result = await this.usersRepository.update({ uuid }, updateUserDto);
 
     if (!result.affected) throw new NotFoundException('Usuário não encontrado');
@@ -49,6 +57,7 @@ export class UserService {
   private async checkIfNomeExists(nome?: string) {
     const existsNome = await this.usersRepository.existsBy({ nome });
 
-    if (existsNome) throw new BadRequestException('Esse nome já existe');
+    if (nome && existsNome)
+      throw new BadRequestException('Esse nome já existe');
   }
 }
