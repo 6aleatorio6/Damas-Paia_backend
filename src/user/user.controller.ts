@@ -10,15 +10,14 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { LocalAuthService } from './local.auth.service';
-import { Public } from './guard.auth.service';
+import { Public } from '../auth/guard.service';
+import { hash } from 'bcrypt';
+
+const HASH_SALT = +process.env.HASH_SALT;
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly localAuth: LocalAuthService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Public()
   @Post()
@@ -27,16 +26,8 @@ export class UserController {
       message: 'usuario criado!',
       data: await this.userService.create({
         nome,
-        senha: await this.localAuth.criptografarSenha(senha),
+        senha: await hash(senha, HASH_SALT),
       }),
-    };
-  }
-  @Public()
-  @Post('login')
-  async login(@Body() dataUser: CreateUserDto) {
-    return {
-      message: 'sucesso no login!',
-      data: await this.localAuth.login(dataUser),
     };
   }
 
@@ -53,7 +44,7 @@ export class UserController {
     @Request() req,
     @Body() { senha, ...data }: UpdateUserDto,
   ) {
-    const senhaHash = senha && (await this.localAuth.criptografarSenha(senha));
+    const senhaHash = senha && (await hash(senha, HASH_SALT));
 
     await this.userService.update(req.user.uuid, { ...data, senha: senhaHash });
     return { message: 'usuario atualizado!' };

@@ -1,26 +1,20 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { compareSync, hash } from 'bcrypt';
+import { compareSync } from 'bcrypt';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
 import { JwtService } from '@nestjs/jwt';
-
-const HASH_SALT = process.env.HASH_SALT || 8;
+import { User } from 'src/user/entities/user.entity';
+import { LoginDto } from './dto/login-dto';
 
 @Injectable()
-export class LocalAuthService {
+export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
-  public criptografarSenha(senha: string) {
-    return hash(senha, +HASH_SALT);
-  }
-
-  public async login({ nome, senha }: CreateUserDto) {
+  public async login({ nome, senha }: LoginDto) {
     const user = await this.validarUser({ nome, senha });
 
     if (!user) throw new UnauthorizedException('nome ou senha incorretos');
