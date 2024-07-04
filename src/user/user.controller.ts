@@ -6,6 +6,7 @@ import {
   Delete,
   Put,
   Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -40,10 +41,12 @@ export class UserController {
   }
 
   @Put('')
-  async updateByToken(
-    @Request() req,
-    @Body() { senha, ...data }: UpdateUserDto,
-  ) {
+  async updateByToken(@Request() req, @Body() userDto: UpdateUserDto) {
+    if (Object.keys(userDto).length === 0)
+      throw new BadRequestException('Nenhum dado para atualizar');
+
+    const { senha, ...data } = userDto;
+
     const senhaHash = senha && (await hash(senha, HASH_SALT));
 
     await this.userService.update(req.user.uuid, { ...data, senha: senhaHash });
