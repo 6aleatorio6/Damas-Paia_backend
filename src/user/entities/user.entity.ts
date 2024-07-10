@@ -6,7 +6,10 @@ export class User {
   uuid: string;
 
   @Column({ unique: true })
-  nome: string;
+  username: string;
+
+  @Column({ unique: true })
+  email: string;
 
   @Column()
   senha: string;

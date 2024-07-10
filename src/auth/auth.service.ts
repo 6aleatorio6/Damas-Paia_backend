@@ -13,7 +13,7 @@ import { AuthGuard } from './guard.service';
 
 export interface Token {
   uuid: string;
-  nome: string;
+  username: string;
 }
 
 @Injectable()
@@ -25,21 +25,21 @@ export class AuthService {
     private guardService: AuthGuard,
   ) {}
 
-  public async login({ nome, senha }: LoginDto) {
-    const user = await this.validarUser({ nome, senha });
+  public async login({ username, senha }: LoginDto) {
+    const user = await this.validarUser({ username, senha });
 
-    if (!user) throw new UnauthorizedException('nome ou senha incorretos');
+    if (!user) throw new UnauthorizedException('username ou senha incorretos');
 
     return {
       token: this.jwtService.sign({
         uuid: user.uuid,
-        nome: user.nome,
+        username: user.username,
       } as Token),
     };
   }
 
-  private async validarUser({ nome, senha }) {
-    const user = await this.usersRepository.findOne({ where: { nome } });
+  private async validarUser({ username, senha }) {
+    const user = await this.usersRepository.findOne({ where: { username } });
 
     if (!user) return null;
 
@@ -66,7 +66,7 @@ export class AuthService {
         );
 
       return {
-        token: this.jwtService.sign({ uuid, nome: user.nome } as Token),
+        token: this.jwtService.sign({ uuid, username: user.username } as Token),
       };
     }
   }

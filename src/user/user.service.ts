@@ -18,10 +18,7 @@ export class UserService {
 
   async findOne(uuid: string) {
     const user = await this.usersRepository.findOne({
-      select: {
-        nome: true,
-        uuid: true,
-      },
+      select: { username: true, email: true, uuid: true },
       where: { uuid },
     });
 
@@ -31,17 +28,18 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    await this.checkIfNomeExists(createUserDto.nome);
+    await this.checkIfNomeOrEmailExists(createUserDto.username);
 
-    const user = this.usersRepository.create(createUserDto);
+    const user = this.usersRepository.create({
+      ...createUserDto,
+      senha: createUserDto.senha,
+    });
 
     await this.usersRepository.save(user);
-
-    return { ...user, senha: undefined };
   }
 
   async update(uuid: string, updateUserDto: UpdateUserDto) {
-    await this.checkIfNomeExists(updateUserDto.nome);
+    await this.checkIfNomeOrEmailExists(updateUserDto);
 
     const result = await this.usersRepository.update({ uuid }, updateUserDto);
 
@@ -54,10 +52,13 @@ export class UserService {
     if (!result.affected) throw new NotFoundException('Usuário não encontrado');
   }
 
-  private async checkIfNomeExists(nome?: string) {
-    const existsNome = await this.usersRepository.existsBy({ nome });
+  private async checkIfNomeOrEmailExists({ username, email }: any) {
+    const exist = await this.usersRepository.existsBy({ username, email });
 
-    if (nome && existsNome)
-      throw new BadRequestException('Esse nome já existe');
+    if (username && exist)
+      throw new BadRequestException('Esse nome já foi usado');
+
+    if (email && exist)
+      throw new BadRequestException('Esse email já foi usado');
   }
 }
