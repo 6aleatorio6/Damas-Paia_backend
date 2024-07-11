@@ -5,16 +5,18 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { AuthGuard } from './guard.service';
-
-const { SECRET_JWT, TOKEN_EXPIRATION_TIME } = process.env;
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    JwtModule.register({
+    JwtModule.registerAsync({
       global: true,
-      secret: SECRET_JWT,
-      signOptions: { expiresIn: TOKEN_EXPIRATION_TIME },
+      useFactory: (config: ConfigService) => ({
+        secret: config.get('SECRET_JWT'),
+        signOptions: { expiresIn: config.get('TOKEN_EXPIRATION_TIME') },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],

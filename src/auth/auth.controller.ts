@@ -1,7 +1,8 @@
 import { Body, Controller, Get, Post, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard, Public } from './guard.service';
+import { AuthGuard } from './guard.service';
 import { LoginDto } from './dto/login-dto';
+import { Public } from './custom.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -14,8 +15,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() dataUser: LoginDto) {
     return {
-      message: 'sucesso no login!',
-      data: await this.authService.login(dataUser),
+      token: await this.authService.login(dataUser),
     };
   }
 
@@ -24,8 +24,7 @@ export class AuthController {
   async refreshToken(@Request() req) {
     const token = this.guardService.extractTokenFromHeader(req);
     return {
-      message: 'token renovado!',
-      data: await this.authService.refreshToken(token),
+      token: await this.authService.refreshToken(token),
     };
   }
 }

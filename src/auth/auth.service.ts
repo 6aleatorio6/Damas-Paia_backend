@@ -10,11 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { LoginDto } from './dto/login-dto';
 import { AuthGuard } from './guard.service';
-
-export interface Token {
-  uuid: string;
-  username: string;
-}
+import { IToken } from './custom.decorator';
 
 @Injectable()
 export class AuthService {
@@ -25,50 +21,54 @@ export class AuthService {
     private guardService: AuthGuard,
   ) {}
 
+  /**
+   * Através do username e password, retorna um token JWT
+   */
   public async login({ username, password }: LoginDto) {
-    const user = await this.validarUser({ username, password });
+    const user = await this.usersRepository.findOne({
+      where: { username },
+      select: { username: true, uuid: true },
+    });
 
-    if (!user)
-      throw new UnauthorizedException('username ou password incorretos');
+    if (!user) throw new BadRequestException('Usuário não encontrado');
 
-    return {
-      token: this.jwtService.sign({
-        uuid: user.uuid,
-        username: user.username,
-      } as Token),
-    };
+    const isPasswordValid = compareSync(password, user.password || '');
+    if (!isPasswordValid) throw new BadRequestException('Senha incorreta');
+
+    return { token: this.signTokenJwt(user) };
   }
 
-  private async validarUser({ username, password }) {
-    const user = await this.usersRepository.findOne({ where: { username } });
-
-    if (!user) return null;
-
-    if (!compareSync(password, user.password || '')) return null;
-
-    return user;
-  }
-
+  /**
+   * Renova o token JWT a partir de um token de expirado
+   *
+   * Esse método chama o método getPayloadJwt e foca em tratar as exeções que ele gera para renovar o token
+   */
   public async refreshToken(token?: string) {
     try {
-      this.guardService.payloadJwt(token);
-
-      throw new BadRequestException('Esse token ainda é valido');
+      return this.guardService.getPayloadJwt(token);
     } catch (error) {
-      if (error?.response?.error !== 'refresh-token') throw error;
+      const isRefreshToken = error?.response?.description === 'refresh-token';
+      if (!isRefreshToken) throw error;
 
-      const { uuid } = this.jwtService.decode(token) as Token;
+      // verifica se o usuario do token ainda existe
+      const { uuid } = this.jwtService.decode(token);
+      const user = await this.usersRepository.findOne({
+        where: { uuid },
+        select: { username: true },
+      });
 
-      const user = await this.usersRepository.findOne({ where: { uuid } });
-
+      // se o usuario não existir, não renova o token
       if (!user)
         throw new UnauthorizedException(
           'Sua conta não foi encontrada, faça login novamente',
         );
 
-      return {
-        token: this.jwtService.sign({ uuid, username: user.username } as Token),
-      };
+      return this.signTokenJwt({ username: user.username, uuid });
     }
   }
+
+  /**
+   * Gera um token JWT
+   */
+  private signTokenJwt = (payload: IToken) => this.jwtService.sign(payload);
 }
