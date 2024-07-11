@@ -28,18 +28,18 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    await this.checkIfNomeOrEmailExists(createUserDto.username);
+    await this.checkIfNameOrEmailExists(createUserDto.username);
 
     const user = this.usersRepository.create({
       ...createUserDto,
-      senha: createUserDto.senha,
+      password: createUserDto.password,
     });
 
     await this.usersRepository.save(user);
   }
 
   async update(uuid: string, updateUserDto: UpdateUserDto) {
-    await this.checkIfNomeOrEmailExists(updateUserDto);
+    await this.checkIfNameOrEmailExists(updateUserDto);
 
     const result = await this.usersRepository.update({ uuid }, updateUserDto);
 
@@ -52,7 +52,7 @@ export class UserService {
     if (!result.affected) throw new NotFoundException('Usuário não encontrado');
   }
 
-  private async checkIfNomeOrEmailExists({ username, email }: any) {
+  private async checkIfNameOrEmailExists({ username, email }: any) {
     const exist = await this.usersRepository.existsBy({ username, email });
 
     if (username && exist)

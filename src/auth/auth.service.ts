@@ -25,10 +25,11 @@ export class AuthService {
     private guardService: AuthGuard,
   ) {}
 
-  public async login({ username, senha }: LoginDto) {
-    const user = await this.validarUser({ username, senha });
+  public async login({ username, password }: LoginDto) {
+    const user = await this.validarUser({ username, password });
 
-    if (!user) throw new UnauthorizedException('username ou senha incorretos');
+    if (!user)
+      throw new UnauthorizedException('username ou password incorretos');
 
     return {
       token: this.jwtService.sign({
@@ -38,12 +39,12 @@ export class AuthService {
     };
   }
 
-  private async validarUser({ username, senha }) {
+  private async validarUser({ username, password }) {
     const user = await this.usersRepository.findOne({ where: { username } });
 
     if (!user) return null;
 
-    if (!compareSync(senha, user.senha || '')) return null;
+    if (!compareSync(password, user.password || '')) return null;
 
     return user;
   }
