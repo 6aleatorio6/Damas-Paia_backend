@@ -11,10 +11,8 @@ import { TypeOrmConfigService as OrmConfig } from './database.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useClass: OrmConfig,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({ useClass: OrmConfig }),
     UserModule,
     AuthModule,
   ],
