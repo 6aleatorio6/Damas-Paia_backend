@@ -10,7 +10,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { hash } from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -67,7 +67,7 @@ export class UserService {
     if (dto.password) {
       const hashSalt = +this.configService.get('HASH_SALT', 8);
 
-      dto.password = await hash(dto.password, hashSalt);
+      dto.password = await bcrypt.hash(dto.password, hashSalt);
     }
 
     return dto;
