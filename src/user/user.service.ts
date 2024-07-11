@@ -32,7 +32,7 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    await this.checkIfNameOrEmailExists(createUserDto.username);
+    await this.checkIfNameOrEmailExists(createUserDto);
 
     await this.hashPasswordInDto(createUserDto);
 
@@ -73,16 +73,22 @@ export class UserService {
     return dto;
   }
 
+  /**
+   *  Se eu precisar fazer isso em mais algum lugar aproveito e faço um filtro de execeção global para os erros do typeOrm
+   */
   private async checkIfNameOrEmailExists({ username, email }: any) {
-    const exist = await this.usersRepository.existsBy([
-      { username },
-      { email },
-    ]);
+    const userExist = await this.usersRepository.findOne({
+      where: [{ username }, { email }],
+      select: { username: true, email: true },
+    });
 
-    if (username && exist)
-      throw new BadRequestException('Esse nome já foi usado');
+    const usedEmail = userExist?.email === email ? 'email' : '';
+    const usedName = userExist?.username === username ? 'nome' : '';
+    const ambos = usedEmail && usedName ? ' e ' : '';
 
-    if (email && exist)
-      throw new BadRequestException('Esse email já foi usado');
+    if (userExist)
+      throw new BadRequestException(
+        `Esse ${usedEmail}${ambos}${usedName} já ${ambos ? 'foram' : 'foi'} usado`,
+      );
   }
 }
