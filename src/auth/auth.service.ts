@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { LoginDto } from './dto/login-dto';
-import { AuthGuard } from './guard.service';
+import { AuthGuard } from './auth.guard';
 import { IToken } from './custom.decorator';
 
 @Injectable()
