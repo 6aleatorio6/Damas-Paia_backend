@@ -35,7 +35,7 @@ export class UserController {
   @Put('')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateByToken(@ReqUser() ReqUser, @Body() userDto: UpdateUserDto) {
-    await this.userService.update(ReqUser, userDto);
+    await this.userService.update(ReqUser.uuid, userDto);
   }
 
   @Delete('')

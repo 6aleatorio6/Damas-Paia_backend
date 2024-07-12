@@ -3,14 +3,14 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { compareSync } from 'bcrypt';
+import { compare } from 'bcrypt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { LoginDto } from './dto/login-dto';
 import { AuthGuard } from './auth.guard';
-import { IToken } from './custom.decorator';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -27,15 +27,15 @@ export class AuthService {
   public async login({ username, password }: LoginDto) {
     const user = await this.usersRepository.findOne({
       where: { username },
-      select: { username: true, uuid: true },
+      select: { uuid: true, password: true },
     });
 
     if (!user) throw new BadRequestException('Usuário não encontrado');
 
-    const isPasswordValid = compareSync(password, user.password || '');
+    const isPasswordValid = await compare(password, user.password || '');
     if (!isPasswordValid) throw new BadRequestException('Senha incorreta');
 
-    return { token: this.signTokenJwt(user) };
+    return await this.signTokenJwt(user.uuid);
   }
 
   /**
@@ -50,12 +50,11 @@ export class AuthService {
       const isRefreshToken = error?.response?.description === 'refresh-token';
       if (!isRefreshToken) throw error;
 
-      // verifica se o usuario do token ainda existe
+      // pega o uuid do token expirado
       const { uuid } = this.jwtService.decode(token);
-      const user = await this.usersRepository.findOne({
-        where: { uuid },
-        select: { username: true },
-      });
+
+      // verifica se o usuario do token ainda existe
+      const user = await this.usersRepository.existsBy({ uuid });
 
       // se o usuario não existir, não renova o token
       if (!user)
@@ -63,12 +62,12 @@ export class AuthService {
           'Sua conta não foi encontrada, faça login novamente',
         );
 
-      return this.signTokenJwt({ username: user.username, uuid });
+      return await this.signTokenJwt(uuid);
     }
   }
 
   /**
    * Gera um token JWT
    */
-  private signTokenJwt = (payload: IToken) => this.jwtService.sign(payload);
+  private signTokenJwt = (uuid: UUID) => this.jwtService.signAsync({ uuid });
 }

@@ -8,7 +8,6 @@ import { UUID } from 'crypto';
 
 export interface IToken {
   uuid: UUID;
-  username: string;
 }
 
 /**
