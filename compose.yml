@@ -1,7 +1,19 @@
-
 services:
-  db:
-    container_name: damas_paia-db
+  backend:
+    container_name: sv
+    build: .
+    stdin_open: true
+    tty: true
+    depends_on:
+      - database
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+    env_file:
+      - .env
+  database:
+    container_name: db
     image: postgres
     environment:
       - POSTGRES_USER=${DB_USER}
@@ -11,17 +23,3 @@ services:
       - "5432:5432"
     env_file:
       - .env
-  backend:
-    container_name: damas_paia
-    build: .
-    stdin_open: true
-    tty: true
-    depends_on:
-      - db
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./:/app
-    env_file:
-      - .env
-  

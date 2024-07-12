@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-ENV MODO=dev
+ENV MODO="prod"
 
 WORKDIR /app
 
