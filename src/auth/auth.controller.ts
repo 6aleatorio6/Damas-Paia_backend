@@ -22,7 +22,7 @@ export class AuthController {
   @Public()
   @Get('refresh')
   async refreshToken(@Request() req) {
-    const token = this.guardService.extractTokenFromHeader(req);
+    const token = this.guardService.extractTokenFromHeaderOrThrow(req);
     return {
       token: await this.authService.refreshToken(token),
     };

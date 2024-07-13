@@ -45,19 +45,21 @@ export class AuthService {
    */
   public async refreshToken(token?: string) {
     try {
-      return this.guardService.getPayloadJwt(token);
+      this.guardService.getPayloadJwt(token);
+
+      throw new BadRequestException('O token ainda é valido');
     } catch (error) {
-      const isRefreshToken = error?.response?.description === 'refresh-token';
-      if (!isRefreshToken) throw error;
+      const isRefresh = error?.response?.error === 'refresh-token';
+      if (!isRefresh) throw error;
 
       // pega o uuid do token expirado
       const { uuid } = this.jwtService.decode(token);
 
       // verifica se o usuario do token ainda existe
-      const user = await this.usersRepository.existsBy({ uuid });
+      const isExistUser = await this.usersRepository.existsBy({ uuid });
 
       // se o usuario não existir, não renova o token
-      if (!user)
+      if (!isExistUser)
         throw new UnauthorizedException(
           'Sua conta não foi encontrada, faça login novamente',
         );
