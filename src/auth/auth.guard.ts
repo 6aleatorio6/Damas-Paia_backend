@@ -40,9 +40,7 @@ export class AuthGuard implements CanActivate {
   public getPayloadJwt(token: string) {
     if (!token) throw new UnauthorizedException('Sem token de acesso!');
 
-    const tokenLimitRefreshDay = this.configService.get(
-      'TOKEN_RENEWAL_LIMIT_DAY',
-    );
+    const limitDay = +this.configService.get('TOKEN_RENEWAL_LIMIT_DAY', 1);
 
     try {
       return this.jwtService.verify(token) as IToken;
@@ -53,7 +51,7 @@ export class AuthGuard implements CanActivate {
 
       // Verifica se o token expirado é elegível para renovação, e manda uma exeção para o cliente atualizar o token se for
       const minDesdeExp = (Date.now() - error.expiredAt.valueOf()) / 1000 / 60;
-      const elegivelRefresh = minDesdeExp <= 60 * 24 * tokenLimitRefreshDay;
+      const elegivelRefresh = minDesdeExp <= 60 * 24 * limitDay;
       if (elegivelRefresh) {
         throw new UnauthorizedException('Atualize o token!', {
           description: 'refresh-token',
