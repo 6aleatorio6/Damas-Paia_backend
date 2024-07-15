@@ -1,5 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
-import { AppController } from './app.controller';
+import { Controller, Get, MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { LoggerMiddleware } from './logger.service';
@@ -8,7 +7,19 @@ import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmConfigService as OrmConfig } from './database.service';
+import { Public } from './auth/custom.decorator';
 
+// endpoint para checar se o sv está on
+@Controller()
+class AppController {
+  @Public()
+  @Get()
+  endpoint() {
+    return 'Paia online!';
+  }
+}
+
+// módulo principal
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
