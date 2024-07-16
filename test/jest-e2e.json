@@ -4,17 +4,17 @@
     "json",
     "ts"
   ],
-  "rootDir": ".",
+  "rootDir": "../",
   "moduleNameMapper": {
-    "^src/(.*)$": "<rootDir>/../src/$1",
-    "test/setup": "<rootDir>/setup.ts"
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "test/setup": "<rootDir>/test/setup.ts"
   },
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
-  "setupFilesAfterEnv": [
-    "<rootDir>/setup.ts"
+  "testPathIgnorePatterns": [
+    "/node_modules/"
   ]
 }

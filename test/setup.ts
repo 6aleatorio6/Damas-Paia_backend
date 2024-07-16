@@ -1,39 +1,35 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { AuthModule } from 'src/auth/auth.module';
-import { TypeOrmConfigService } from 'src/database.service';
-import { UserModule } from 'src/user/user.module';
+import { AppModule } from 'src/app.module';
 
-const setupRef = {} as {
-  server: INestApplication;
-};
+export default function appTriste() {
+  process.env['DB_NAME'] = process.env['TEST_DB_NAME'];
+  process.env['MODO'] = 'test';
 
-beforeEach(async () => {
-  const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [
-      ConfigModule.forRoot({
-        isGlobal: true,
-        envFilePath: '../.env-test',
-      }),
-      TypeOrmModule.forRootAsync({ useClass: TypeOrmConfigService }),
-      UserModule,
-      AuthModule,
-    ],
-    providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
-  }).compile();
+  const testRef = {} as {
+    app: INestApplication;
+  };
 
-  setupRef.server = moduleFixture.createNestApplication();
-  setupRef.server.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  // Testes
+  let app: INestApplication;
+  beforeEach(async () => {
+    // configurando um modulo
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
 
-  await setupRef.server.init();
-});
+    // criando o server
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-afterEach(async () => {
-  await setupRef.server.close();
-});
+    // iniciando
+    await app.init();
+    testRef.app = app;
+  });
 
-export default setupRef;
+  afterEach(async () => {
+    await testRef.app.close();
+  });
+
+  return testRef;
+}
