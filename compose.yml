@@ -18,10 +18,8 @@ services:
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_MULTIPLE_DATABASES=${DB_NAME},${TEST_DB_NAME}
+      - POSTGRES_DB=${DB_NAME}
     ports:
       - "5432:5432"
     env_file:
       - .env
-    volumes:
-        - ./scripts/create-multiples-dbs.sh:/docker-entrypoint-initdb.d/create-multiples-dbs.sh
