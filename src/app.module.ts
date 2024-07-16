@@ -5,7 +5,7 @@ import { LoggerMiddleware } from './logger.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmConfigService as OrmConfig } from './database.service';
 import { Public } from './auth/custom.decorator';
 
@@ -31,7 +31,9 @@ class AppController {
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
 })
 export class AppModule {
+  constructor(private config: ConfigService) {}
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*');
+    if (this.config.getOrThrow('MODO') === 'dev')
+      consumer.apply(LoggerMiddleware).forRoutes('*');
   }
 }

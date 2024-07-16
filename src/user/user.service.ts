@@ -38,7 +38,7 @@ export class UserService {
 
     const user = this.usersRepository.create(createUserDto);
 
-    await this.usersRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async update(uuid: UUID, updateUserDto: UpdateUserDto) {
