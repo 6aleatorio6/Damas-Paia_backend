@@ -14,10 +14,15 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       port: +this.config.get('DB_PORT', 5432),
       username: this.config.get('DB_USER', 'root'),
       password: this.config.get('DB_PASSWORD', ''),
-      database: this.config.get('DB_NAME', 'damas_paia'),
-      synchronize: this.config.get('MODO', 'prod') !== 'prod',
-      dropSchema: this.config.get('MODO', 'prod') !== 'prod',
+      database: this.config.getOrThrow('DB_NAME'),
+      dropSchema: this.isModo('dev'),
+      synchronize: this.isModo('dev', 'test'),
+      autoLoadEntities: this.isModo('dev', 'test'),
       entities: [User],
     };
+  }
+
+  private isModo(...MODO: ('prod' | 'dev' | 'test')[]) {
+    return MODO.includes(this.config.getOrThrow('MODO'));
   }
 }

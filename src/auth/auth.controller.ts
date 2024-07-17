@@ -11,8 +11,8 @@ export class AuthController {
     private readonly guardService: AuthGuard,
   ) {}
 
-  @Public()
   @Post('login')
+  @Public()
   @HttpCode(200)
   async login(@Body() dataUser: LoginDto) {
     return {
