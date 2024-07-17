@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { DbTest } from './createDb';
 import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 
 export const testRef = {} as {
   app: INestApplication;
@@ -11,7 +12,7 @@ export const testRef = {} as {
 const dbTest = new DbTest();
 
 // Testes
-beforeEach(async () => {
+beforeAll(async () => {
   await dbTest.create();
   process.env['MODO'] = 'test';
   process.env['DB_NAME'] = dbTest.dbName;
@@ -28,7 +29,12 @@ beforeEach(async () => {
   await testRef.app.init();
 });
 
-afterEach(async () => {
+beforeEach(async () => {
+  await testRef.app.get(DataSource).dropDatabase();
+  await testRef.app.get(DataSource).synchronize();
+});
+
+afterAll(async () => {
   await testRef.app.close();
   await dbTest.delete();
 });
