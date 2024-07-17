@@ -8,17 +8,15 @@ const credentials: LoginDto = {
   password: 'leo123',
 };
 describe('/auth/login (POST)', () => {
-  beforeEach(async () => {
-    console.log(
-      await testRef.app.get(UserService).create({
-        ...credentials,
-        email: 'paioso2@gmail.com',
-      }),
-    );
-  });
-
   const fetchPaia = (c: Partial<LoginDto>) =>
     request(testRef.app.getHttpServer()).post('/auth/login').send(c);
+
+  beforeEach(() =>
+    testRef.app.get(UserService).create({
+      ...credentials,
+      email: 'paioso2@gmail.com',
+    }),
+  );
 
   it('sucesso no login', async () => {
     const res = await fetchPaia({ ...credentials });
