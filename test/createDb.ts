@@ -1,13 +1,10 @@
 import { User } from 'src/user/entities/user.entity';
 import { DataSource } from 'typeorm';
 
-export class DbTest {
-  private db: DataSource;
+export class DbTest extends DataSource {
   public dbName: string;
   constructor() {
-    this.dbName = `TEST_DB_PAIA_${Date.now() + Math.floor(Math.random() * 100)}`;
-
-    this.db = new DataSource({
+    super({
       type: 'postgres',
       username: process.env['DB_USER'],
       password: process.env['DB_PASSWORD'],
@@ -16,18 +13,19 @@ export class DbTest {
       entities: [User],
       database: 'postgres',
     });
+
+    this.dbName = `TEST_DB_PAIA_${Date.now() + Math.floor(Math.random() * 100)}`;
   }
 
   async create() {
-    await this.db.initialize();
-    await this.db.query(`CREATE DATABASE "${this.dbName}"`);
-    await this.db.destroy();
-    return this.dbName;
+    await this.initialize();
+    await this.query(`CREATE DATABASE "${this.dbName}"`);
+    await this.destroy();
   }
 
   async delete() {
-    await this.db.initialize();
-    await this.db.query(`DROP DATABASE "${this.dbName}"`);
-    await this.db.destroy();
+    await this.initialize();
+    await this.query(`DROP DATABASE "${this.dbName}"`);
+    await this.destroy();
   }
 }
