@@ -20,10 +20,7 @@ export class UserController {
 
   @Get('')
   async findOneByToken(@ReqUser() ReqUser: IToken) {
-    return {
-      message: 'usuario encontrado!',
-      data: await this.userService.findOne(ReqUser.uuid),
-    };
+    return await this.userService.findOne(ReqUser.uuid);
   }
 
   @Public()
