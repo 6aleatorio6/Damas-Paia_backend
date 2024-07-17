@@ -1,25 +1,19 @@
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { UUID } from 'crypto';
-import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
-import appTriste from 'test/setup';
-import { Repository } from 'typeorm';
+import { testRef } from 'test/setup';
 
 let uuidPaia: UUID;
 
 describe('/auth/refresh (GET)', () => {
-  const testRef = appTriste();
-
   const fetchPaia = (token: string) =>
     request(testRef.app.getHttpServer())
       .get('/auth/refresh')
       .auth(token, { type: 'bearer' });
 
   beforeEach(async () => {
-    await testRef.app.get<Repository<User>>(getRepositoryToken(User)).clear();
     // criando um user
     const user = await testRef.app.get(UserService).create({
       username: 'leoPaia1',
