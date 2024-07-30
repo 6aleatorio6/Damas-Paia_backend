@@ -1,4 +1,3 @@
-import { User } from 'src/user/entities/user.entity';
 import { DataSource } from 'typeorm';
 
 export class DbTest extends DataSource {
@@ -10,7 +9,6 @@ export class DbTest extends DataSource {
       password: process.env['DB_PASSWORD'],
       host: process.env['DB_HOST'],
       port: +process.env['DB_PORT'],
-      entities: [User],
       database: 'postgres',
     });
 

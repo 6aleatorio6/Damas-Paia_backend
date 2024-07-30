@@ -2,7 +2,6 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { DbTest } from './createDb';
-import { ConfigService } from '@nestjs/config';
 import { DataSource } from 'typeorm';
 
 export const testRef = {} as {
@@ -25,7 +24,6 @@ beforeAll(async () => {
   testRef.app = moduleFixture.createNestApplication();
   testRef.app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  testRef.app.get(ConfigService).set('DB_NAME', dbTest.dbName);
   await testRef.app.init();
 });
 
