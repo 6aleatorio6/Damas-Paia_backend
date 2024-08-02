@@ -14,7 +14,7 @@ const dbTest = new DbTest();
 beforeAll(async () => {
   await dbTest.create();
   process.env['MODO'] = 'test';
-  process.env['DB_NAME'] = dbTest.dbName;
+  process.env['POSTGRES_DB'] = dbTest.dbName;
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
