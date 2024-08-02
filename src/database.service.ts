@@ -17,7 +17,6 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       database: this.config.getOrThrow('POSTGRES_DB'),
       dropSchema: this.isModo('dev'),
       synchronize: this.isModo('dev', 'test'),
-      autoLoadEntities: this.isModo('dev', 'test'),
       entities: [User],
     };
   }
