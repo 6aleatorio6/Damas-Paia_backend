@@ -2,8 +2,6 @@ services:
   backend:
     container_name: sv
     build: .
-    stdin_open: true
-    tty: true
     depends_on:
       - database
     ports:
@@ -19,3 +17,4 @@ services:
       - "5432:5432"
     env_file:
       - .env
+    
