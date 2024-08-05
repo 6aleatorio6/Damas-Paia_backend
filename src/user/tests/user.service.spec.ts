@@ -29,6 +29,7 @@ describe('UserService', () => {
   afterEach(jest.clearAllMocks);
 
   it('método que verifica se o email ou nome já foram usados', async () => {
+    db.update.mockResolvedValueOnce({ affected: 1 } as any);
     db.findOne
       // o nome e email já existe no db
       .mockResolvedValueOnce({ password: undefined, ...oneUser } as User)
@@ -42,6 +43,10 @@ describe('UserService', () => {
     await expect(userService.create(oneUser)).rejects.toThrow(
       new BadRequestException('Esse email já foi usado'),
     );
+
+    await expect(
+      userService.update(uuidUser, { password: '123' }),
+    ).resolves.toBeUndefined();
   });
 
   it('método que transforma a senha em um hash', async () => {
