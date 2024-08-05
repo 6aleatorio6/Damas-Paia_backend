@@ -16,10 +16,7 @@
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "compose:dev": "docker compose up",
-    "compose:test": "docker compose run --rm backend npm run test",
-    "compose:testW": "docker compose run --rm backend npm run test -- --watch",
-    "compose:test:e2e": "docker compose run --rm backend npm run test:e2e",
-    "compose:testW:e2e": "docker compose run --rm backend npm run test:e2e -- --watch"
+    "compose": "docker compose -f compose.yml -f ./compose.test.yml run --rm backend npm run --"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

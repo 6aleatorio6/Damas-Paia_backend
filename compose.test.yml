@@ -1,0 +1,8 @@
+services:
+  backend:
+    env_file:
+      - .env.test
+  database:
+    env_file:
+      - .env.test
+    
