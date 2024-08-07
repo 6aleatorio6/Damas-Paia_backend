@@ -2,7 +2,7 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Match } from './match.entity';
 
 @Entity()
-export class Pieces {
+export class Piece {
   @PrimaryGeneratedColumn()
   id: number;
 

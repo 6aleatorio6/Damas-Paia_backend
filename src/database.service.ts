@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { User } from './user/entities/user.entity';
-import { Pieces } from './match/entities/pieces.entity';
+import { Piece } from './match/entities/piece.entity';
 import { Match } from './match/entities/match.entity';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       database: this.config.getOrThrow('POSTGRES_DB'),
       dropSchema: this.isModo('dev'),
       synchronize: this.isModo('dev', 'test'),
-      entities: [User, Pieces, Match],
+      entities: [User, Piece, Match],
     };
   }
 
