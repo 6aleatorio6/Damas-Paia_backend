@@ -8,6 +8,7 @@ import { JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { Socket } from 'socket.io';
 import { IToken } from './custom.decorator';
 
 //  O TEMPO DE EXPIRACAO TERÁ UMA MARGEM DE ERRO ATÉ EU TER TEMPO
@@ -30,11 +31,23 @@ export class AuthGuard implements CanActivate {
 
     if (isPublic) return true;
 
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeaderOrThrow(request);
+    const type = context.getType();
 
-    // o método getPayloadJwt lança exceções se o token não for válido
-    request['user'] = this.getPayloadJwt(token);
+    if (type === 'http') {
+      const request = context.switchToHttp().getRequest();
+
+      const token = this.extractTokenFromHeaderOrThrow(request);
+
+      // o método getPayloadJwt lança exceções se o token não for válido
+      request['user'] = this.getPayloadJwt(token);
+    }
+
+    if (type === 'ws') {
+      const client = context.switchToWs().getClient() as Socket;
+      const token = this.extractTokenFromHeaderOrThrow(client.handshake);
+
+      client.data['user'] = this.getPayloadJwt(token);
+    }
 
     return true;
   }
@@ -65,7 +78,7 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  public extractTokenFromHeaderOrThrow(request: Request) {
+  public extractTokenFromHeaderOrThrow(request: Pick<Request, 'headers'>) {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
 
     if (type !== 'Bearer' || !token) {
