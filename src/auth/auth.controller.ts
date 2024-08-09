@@ -1,15 +1,11 @@
 import { Body, Controller, Get, HttpCode, Post, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { LoginDto } from './dto/login-dto';
 import { Public } from './custom.decorator';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly guardService: AuthGuard,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   @Public()
@@ -23,7 +19,7 @@ export class AuthController {
   @Public()
   @Get('refresh')
   async refreshToken(@Request() req) {
-    const token = this.guardService.extractTokenFromHeaderOrThrow(req);
+    const token = this.authService.extractTokenHeaders(req);
     return {
       token: await this.authService.refreshToken(token),
     };
