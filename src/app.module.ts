@@ -1,12 +1,12 @@
 import { Controller, Get, MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
-import { LoggerMiddleware } from './logger.service';
+import { LoggerMiddleware } from './common/logger.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmConfigService as OrmConfig } from './database.service';
+import { TypeOrmConfigService as OrmConfig } from './common/database.service';
 import { Public } from './auth/custom.decorator';
 import { MatchModule } from './match/match.module';
 import { QueueModule } from './queue/queue.module';

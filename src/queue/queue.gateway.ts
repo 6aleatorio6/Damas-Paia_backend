@@ -7,7 +7,7 @@ import { Server } from 'socket.io';
 import { QueueService } from './queue.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UseFilters, UseGuards } from '@nestjs/common';
-import { WsExceptionsFilter } from 'src/wsException.filter';
+import { WsExceptionsFilter } from 'src/common/wsException.filter';
 import { UUID } from 'crypto';
 
 @UseGuards(AuthGuard)
