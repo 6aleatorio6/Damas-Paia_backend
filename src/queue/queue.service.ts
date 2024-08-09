@@ -13,7 +13,7 @@ export class QueueService {
   ) {}
 
   createMatch(createMatchDto: [UUID, UUID]) {
-    this.dataSource.transaction(async (manager) => {
+    return this.dataSource.transaction(async (manager) => {
       let match = manager.create(Match, {
         player1: { uuid: createMatchDto[0] },
         player2: { uuid: createMatchDto[1] },
@@ -25,11 +25,11 @@ export class QueueService {
 
       match = await manager.save(match);
 
-      return match.id;
+      return match.uuid;
     });
   }
 
-  private createPiece(manager: EntityManager, match: Match, player: Players) {
+  createPiece(manager: EntityManager, match: Match, player: Players) {
     const pY = player.endsWith('1') ? [0, 1] : [6, 7];
 
     const pieces: Piece[] = [];
