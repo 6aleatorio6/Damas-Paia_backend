@@ -21,5 +21,6 @@
   },
   "setupFilesAfterEnv": [
     "./test/setup.ts"
-  ]
+  ],
+  "globalTeardown": "./test/testDb.ts"
 }

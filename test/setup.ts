@@ -1,7 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
-import { DbTest } from './createDb';
+import { DbTest } from './testDb';
 import { DataSource } from 'typeorm';
 
 export const testRef = {} as {
@@ -26,12 +26,5 @@ beforeAll(async () => {
   await testRef.app.init();
 });
 
-beforeEach(async () => {
-  await testRef.app.get(DataSource).dropDatabase();
-  await testRef.app.get(DataSource).synchronize();
-});
-
-afterAll(async () => {
-  await testRef.app.close();
-  await dbTest.delete();
-});
+beforeEach(() => testRef.app.get(DataSource).synchronize(true));
+afterAll(() => testRef.app.close());

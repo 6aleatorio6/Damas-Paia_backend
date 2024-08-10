@@ -21,9 +21,24 @@ export class DbTest extends DataSource {
     await this.destroy();
   }
 
-  async delete() {
+  async deleteAll() {
     await this.initialize();
-    await this.query(`DROP DATABASE "${this.dbName}"`);
+
+    const databases: { datname: string }[] = await this.query(
+      "SELECT datname FROM pg_database WHERE datname LIKE 'TEST_POSTGRES_PAIA_%'",
+    );
+
+    const querys = databases.map((db) =>
+      this.query(`DROP DATABASE "${db.datname}"`),
+    );
+
+    await Promise.all(querys);
+
     await this.destroy();
   }
 }
+
+//
+//
+
+export default () => new DbTest().deleteAll();
