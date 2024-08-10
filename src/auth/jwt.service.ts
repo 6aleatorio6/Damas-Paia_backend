@@ -22,17 +22,16 @@ export class JwtAuthService {
 
       return { status: 'VALID', payload };
     } catch (error) {
+      const payload = this.jwtService.decode(token);
       const isElegibleToRefresh =
         error instanceof TokenExpiredError && this.isElegibleToRefresh(error);
 
-      if (isElegibleToRefresh)
-        return { status: 'REFRESH', payload: error as any };
-      if (!isElegibleToRefresh)
-        return { status: 'INVALID', payload: error as any };
+      if (isElegibleToRefresh) return { status: 'REFRESH', payload };
+      if (!isElegibleToRefresh) return { status: 'INVALID', payload };
     }
   }
 
-  protected isElegibleToRefresh(error: TokenExpiredError) {
+  public isElegibleToRefresh(error: TokenExpiredError) {
     // Verifica se o token expirado é elegível para renovação, e manda uma exceção para o cliente atualizar o token se for
     const minDesdeExp = (Date.now() - error.expiredAt.valueOf()) / 1000 / 60;
 
