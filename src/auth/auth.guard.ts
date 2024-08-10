@@ -42,9 +42,11 @@ export class AuthGuard implements CanActivate {
 
     if (type === 'ws') {
       const client = context.switchToWs().getClient() as Socket;
-      const token = this.authService.extractTokenHeaders(client.handshake);
 
-      client.data['user'] = this.getPayloadJwtOrThrow(token);
+      if (!client.data.user) {
+        const token = this.authService.extractTokenHeaders(client.handshake);
+        client.data['user'] = this.getPayloadJwtOrThrow(token);
+      }
     }
 
     return true;
