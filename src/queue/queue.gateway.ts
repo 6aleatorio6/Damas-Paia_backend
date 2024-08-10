@@ -23,8 +23,8 @@ export class QueueGateway {
    * 3 - Se tiver 2 usuarios no queue, cria um match e envia o uuid do match por um evento.
    * 4 - Desconecta os usuarios do queue.
    */
-  @SubscribeMessage('joinQueue')
-  async joinQueue() {
+  @SubscribeMessage('req-match')
+  async reqMatch() {
     let sockets = await this.io.fetchSockets();
     sockets = sockets.filter(({ data }) => data?.user);
 
@@ -39,5 +39,7 @@ export class QueueGateway {
         socket.disconnect();
       });
     }
+
+    return sockets.length;
   }
 }
