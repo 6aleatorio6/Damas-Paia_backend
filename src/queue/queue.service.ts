@@ -19,11 +19,11 @@ export class QueueService {
         player2: { uuid: createMatchDto[1] },
       });
 
+      match = await manager.save(match);
+
       const pieces1 = this.createPiece(manager, match, 'player1');
       const pieces2 = this.createPiece(manager, match, 'player2');
-      await manager.save([pieces1, pieces2]);
-
-      match = await manager.save(match);
+      await manager.save(pieces1.concat(pieces2));
 
       return match.uuid;
     });
