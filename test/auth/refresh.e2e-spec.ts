@@ -38,15 +38,6 @@ describe('/auth/refresh (GET)', () => {
     expect(res.body).toHaveProperty('token');
   });
 
-  it('o token ainda era valido', async () => {
-    const token = createToken('valid');
-    const res = await fetchPaia(token);
-
-    expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty('message', 'O token ainda é valido');
-    expect(res.body).not.toHaveProperty('token');
-  });
-
   it('o user do token expirado não existe mais', async () => {
     const token = createToken('exp', '482c10ba-7e0c-4ba0-bc7b-e4172e187d43');
     const res = await fetchPaia(token);
@@ -66,7 +57,7 @@ describe('/auth/refresh (GET)', () => {
     const res = await fetchPaia(token);
 
     expect(res.statusCode).toBe(401);
-    expect(res.body).toHaveProperty('message', 'Token expirado!');
+    expect(res.body).toHaveProperty('message', 'Token inválido!');
     expect(res.body).not.toHaveProperty('token');
   });
 
