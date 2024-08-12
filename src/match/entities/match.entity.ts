@@ -1,3 +1,4 @@
+import { UUID } from 'crypto';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -9,8 +10,8 @@ import {
 
 @Entity()
 export class Match {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  uuid: UUID;
 
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   player1: User;
