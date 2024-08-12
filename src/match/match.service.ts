@@ -23,11 +23,32 @@ export class MatchService {
     return this.matchRepository.save(match);
   }
 
-  update(id: number, updateMatchDto: UpdateMatchDto) {
-    return `This action updates a #${id} match`;
-  }
+  async checkAvailableMoves(match: Match, player: Players, piece: Piece) {
+    const moviments: { x: number; y: number }[] = [];
+    const piecesPlayer = await this.pieceRepository.find({
+      where: { match },
+      select: ['x', 'y', 'queen'],
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} match`;
+    for (let i = -1; i <= 1; i = i + 2) {
+      const x = piece.x + i;
+      const y = piece.y + (piece.queen ? i : 1);
+
+      if (x < 0 || x > 7) continue;
+      if (y < 0 || y > 7) continue;
+
+      const checkOccupied = (xC, yC) =>
+        piecesPlayer.find((p) => p.x === xC && p.y === yC);
+
+      if (checkOccupied(x, y)) {
+        if (checkOccupied(x + i, y + (piece.queen ? i : 1))) continue;
+
+        if (!checkOccupied(x + i, y + (piece.queen ? i : 1))) {
+          moviments.push({ x: x + i, y: y + (piece.queen ? i : 1) });
+        }
+      }
+    }
+
+    return moviments;
   }
 }
