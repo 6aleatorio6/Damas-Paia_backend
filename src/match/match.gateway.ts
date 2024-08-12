@@ -1,34 +1,43 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  WebSocketServer,
+  WsException,
+  ConnectedSocket,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
 import { MatchService } from './match.service';
-import { CreateMatchDto } from './dto/create-match.dto';
-import { UpdateMatchDto } from './dto/update-match.dto';
+import { UseFilters, UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { WsExceptionsFilter } from 'src/common/wsException.filter';
+import { IToken, ReqUser } from 'src/auth/custom.decorator';
+import { UUID } from 'crypto';
 
-@WebSocketGateway()
+@UseGuards(AuthGuard)
+@UseFilters(new WsExceptionsFilter())
+@WebSocketGateway({ namespace: 'match', cors: true })
 export class MatchGateway {
+  @WebSocketServer() io: Server;
+
   constructor(private readonly matchService: MatchService) {}
 
-  @SubscribeMessage('createMatch')
-  create(@MessageBody() createMatchDto: CreateMatchDto) {
-    return this.matchService.create(createMatchDto);
-  }
+  @SubscribeMessage('joinMatch')
+  async joinMatch(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() matchId: UUID,
+  ) {
+    const user = socket.data.user as IToken;
+    const match = await this.matchService.getMatchByUUID(matchId);
 
-  @SubscribeMessage('findAllMatch')
-  findAll() {
-    return this.matchService.findAll();
-  }
+    const isPlayer1 = match.player1.uuid === user.uuid;
+    const isPlayer2 = match.player2.uuid === user.uuid;
 
-  @SubscribeMessage('findOneMatch')
-  findOne(@MessageBody() id: number) {
-    return this.matchService.findOne(id);
-  }
+    if (isPlayer1 || isPlayer2) {
+      throw new WsException('User not in match');
+    }
 
-  @SubscribeMessage('updateMatch')
-  update(@MessageBody() updateMatchDto: UpdateMatchDto) {
-    return this.matchService.update(updateMatchDto.id, updateMatchDto);
-  }
-
-  @SubscribeMessage('removeMatch')
-  remove(@MessageBody() id: number) {
-    return this.matchService.remove(id);
+    socket.data.player = isPlayer1 ? 'player1' : 'player2';
+    socket.join(matchId);
   }
 }

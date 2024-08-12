@@ -1,19 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMatchDto } from './dto/create-match.dto';
-import { UpdateMatchDto } from './dto/update-match.dto';
+import { Repository } from 'typeorm';
+import { Match, Players } from './entities/match.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Piece } from './entities/piece.entity';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class MatchService {
-  create(createMatchDto: CreateMatchDto) {
-    return 'This action adds a new match';
+  constructor(
+    @InjectRepository(Match)
+    private matchRepository: Repository<Match>,
+    @InjectRepository(Piece)
+    private pieceRepository: Repository<Piece>,
+  ) {}
+
+  getMatchByUUID(uuid: UUID) {
+    return this.matchRepository.findOne({ where: { uuid } });
   }
 
-  findAll() {
-    return `This action returns all match`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} match`;
+  toogleTurn(match: Match) {
+    match.turn = match.turn === 'player1' ? 'player2' : 'player1';
+    return this.matchRepository.save(match);
   }
 
   update(id: number, updateMatchDto: UpdateMatchDto) {
