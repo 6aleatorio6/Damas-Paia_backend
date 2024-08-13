@@ -29,7 +29,6 @@ class AppController {
     UserModule,
     AuthModule,
     MatchModule,
-    QueueModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }],

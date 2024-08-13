@@ -25,7 +25,7 @@ export class QueueService {
       const pieces2 = this.createPiece(manager, match, 'player2');
       await manager.save(pieces1.concat(pieces2));
 
-      return match.uuid;
+      return match;
     });
   }
 
