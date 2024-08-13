@@ -24,6 +24,13 @@ export const ReqUser = createParamDecorator(
   },
 );
 
+export const UserWs = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const socket = ctx.switchToWs().getClient();
+    return socket.request.user;
+  },
+);
+
 /**
  *  Desabilita a verificação de token JWT no endpoint
  */

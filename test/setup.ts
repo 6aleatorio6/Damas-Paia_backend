@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { DbTest } from './testDb';
 import { DataSource } from 'typeorm';
+import { AuthenticatedSocketIoAdapter } from 'src/auth/wsAuth.adapter';
 
 export const testRef = {} as {
   app: INestApplication;
@@ -21,6 +22,9 @@ beforeAll(async () => {
 
   // criando o server
   testRef.app = moduleFixture.createNestApplication();
+
+  const adapter = new AuthenticatedSocketIoAdapter(testRef.app);
+  testRef.app.useWebSocketAdapter(adapter);
   testRef.app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
   await testRef.app.init();
