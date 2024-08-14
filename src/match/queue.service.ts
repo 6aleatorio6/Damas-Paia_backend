@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
 import { UUID } from 'crypto';
@@ -12,7 +12,21 @@ export class QueueService {
     private dataSource: DataSource,
   ) {}
 
-  createMatch(createMatchDto: [UUID, UUID]) {
+  async getMatchAndPieces(uuid: UUID) {
+    const match = await this.dataSource
+      .getRepository(Match)
+      .findOneBy({ uuid });
+
+    if (!match) throw new NotFoundException('Match not found');
+
+    const pieces = await this.dataSource
+      .getRepository(Piece)
+      .findBy({ match: { uuid } });
+
+    return { match, pieces };
+  }
+
+  createMatch(createMatchDto: UUID[]) {
     return this.dataSource.transaction(async (manager) => {
       let match = manager.create(Match, {
         player1: { uuid: createMatchDto[0] },
@@ -21,11 +35,13 @@ export class QueueService {
 
       match = await manager.save(match);
 
-      const pieces1 = this.createPiece(manager, match, 'player1');
-      const pieces2 = this.createPiece(manager, match, 'player2');
-      await manager.save(pieces1.concat(pieces2));
+      const piecesP1 = this.createPiece(manager, match, 'player1');
+      const piecesP2 = this.createPiece(manager, match, 'player2');
+      const pieces = piecesP1.concat(piecesP2);
 
-      return match;
+      await manager.save(pieces);
+
+      return { match, pieces };
     });
   }
 

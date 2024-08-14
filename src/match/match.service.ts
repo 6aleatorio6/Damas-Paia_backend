@@ -14,12 +14,17 @@ export class MatchService {
     private pieceRepository: Repository<Piece>,
   ) {}
 
-  getMatchByUUID(uuid: UUID) {
-    return this.matchRepository.findOne({ where: { uuid } });
-  }
-
   toogleTurn(match: Match) {
     match.turn = match.turn === 'player1' ? 'player2' : 'player1';
+    return this.matchRepository.save(match);
+  }
+
+  async setWinner(match: Match, player: Players | null) {
+    await this.pieceRepository.delete({ match });
+
+    match.winner = player;
+    match.dateEnd = new Date();
+
     return this.matchRepository.save(match);
   }
 

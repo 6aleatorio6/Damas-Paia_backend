@@ -1,69 +1,105 @@
 import {
   WebSocketGateway,
   SubscribeMessage,
-  MessageBody,
   WebSocketServer,
-  WsException,
   ConnectedSocket,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { MatchService } from './match.service';
-import { UseFilters, UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { UseFilters } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
-import { IToken, ReqUser } from 'src/auth/custom.decorator';
-import { UUID } from 'crypto';
+import { IToken, UserWs } from 'src/auth/custom.decorator';
+import { Match, Players } from './entities/match.entity';
+import { QueueService } from './queue.service';
+import { Piece } from './entities/piece.entity';
 
-@UseGuards(AuthGuard)
+export type SocketU = Omit<Socket, 'data'> & {
+  request: { user: IToken };
+  data: { match: Match; pieces: Piece[]; player: 'player1' | 'player2' };
+};
+
 @UseFilters(new WsExceptionsFilter())
-@WebSocketGateway({ namespace: 'match', cors: true })
-export class MatchGateway {
+@WebSocketGateway({ cors: true })
+export class MatchGateway implements OnGatewayDisconnect {
   @WebSocketServer() io: Server;
 
-  constructor(private readonly matchService: MatchService) {}
+  constructor(
+    private readonly matchService: MatchService,
+    private readonly queueService: QueueService,
+  ) {}
 
-  @SubscribeMessage('joinMatch')
-  async joinMatch(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() matchId: UUID,
-  ) {
-    const user = socket.data.user as IToken;
-    const match = await this.matchService.getMatchByUUID(matchId);
-
-    const isPlayer1 = match.player1.uuid === user.uuid;
-    const isPlayer2 = match.player2.uuid === user.uuid;
-
-    if (isPlayer1 || isPlayer2) {
-      throw new WsException('User not in match');
-    }
-
-    socket.data.player = isPlayer1 ? 'player1' : 'player2';
-    socket.join(matchId);
-  }
-
-  /**
-   * 1 - Quando o usuario emit esse evento o Guard de autenticação autentica e add o obj user com o uuid no socket
-   * 2 - assim o usuario passa do filter e fica elegivel para o pareamento.
-   * 3 - Se tiver 2 usuarios no queue, cria um match e envia o uuid do match por um evento.
-   * 4 - Desconecta os usuarios do queue.
-   */
-  @SubscribeMessage('req-match')
-  async reqMatch() {
-    const sockets = await this.io.fetchSockets();
+  @SubscribeMessage('queue-match')
+  async queueMatch(@ConnectedSocket() socket: SocketU) {
+    await socket.join('queue');
+    const sockets = await this.io.in('queue').fetchSockets();
 
     if (sockets.length >= 2) {
-      const users = sockets.slice(0, 2);
-      const uuids = users.map(({ data }) => data.user.uuid) as [UUID, UUID];
+      sockets.forEach((s) => s.leave('queue'));
 
-      const matchUUID = await this.queueService.createMatch(uuids);
+      const uuids = sockets.map((s: any) => s.request.user.uuid);
+      const { match, pieces } = await this.queueService.createMatch(uuids);
 
-      users.forEach((socket) => {
-        socket.emit('match', matchUUID);
-        socket.disconnect();
+      sockets.forEach((s) => {
+        const player = uuids[0] === match.player1.uuid ? 'player1' : 'player2';
+
+        s.join(match.uuid);
+        s.data.match = match;
+        s.data.pieces = pieces;
+        s.data.player = player;
+
+        s.emit(
+          'match',
+          pieces.map((p) => ({ ...p, match: undefined })),
+        );
       });
     }
-
-    return sockets.length;
   }
 
+  private usersLeave = new Map<
+    string,
+    { timeoutId: any; match: Match; player: Players }
+  >();
+
+  async handleConnection(socket: SocketU) {
+    const user = socket.request.user;
+    const reconnectData = this.usersLeave.get(user.uuid);
+
+    if (!reconnectData) return;
+
+    const { timeoutId, player, match } = reconnectData;
+    clearTimeout(timeoutId);
+    console.log(match);
+
+    const dataAtual = await this.queueService.getMatchAndPieces(match.uuid);
+
+    socket.join(match.uuid);
+    socket.data.pieces = dataAtual.pieces;
+    socket.data.match = dataAtual.match;
+    socket.data.player = player;
+    socket.emit(
+      'match',
+      dataAtual.pieces.map((p) => ({ ...p, match: undefined })),
+    );
+  }
+
+  handleDisconnect(socket: SocketU) {
+    if (socket.rooms.has('queue')) return;
+
+    const user = socket.request.user;
+    const { match, player } = socket.data;
+
+    if (match.winner) return;
+
+    const timeoutId = setTimeout(() => {
+      this.usersLeave.delete(user.uuid);
+
+      this.io.to(match.uuid).emit('endMatch', 'Jogador desconectado');
+      this.io.in(match.uuid).disconnectSockets();
+
+      return this.matchService.setWinner(match, player);
+    }, 3000);
+
+    this.usersLeave.set(user.uuid, { timeoutId, match, player });
+  }
 }
