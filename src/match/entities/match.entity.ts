@@ -19,11 +19,11 @@ export class Match {
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   player2: User;
 
-  @Column({ nullable: true, default: null, enum: ['player1', 'player2'] })
-  winner: Players;
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  winner: User;
 
-  @Column({ nullable: true, default: 'player1' })
-  turn: Players;
+  @ManyToOne(() => User, { onDelete: 'SET NULL' })
+  turn: User;
 
   @CreateDateColumn()
   dateInit: Date;
@@ -31,5 +31,3 @@ export class Match {
   @Column({ nullable: true })
   dateEnd?: Date;
 }
-
-export type Players = 'player1' | 'player2';
