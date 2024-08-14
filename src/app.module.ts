@@ -9,7 +9,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmConfigService as OrmConfig } from './common/database.service';
 import { Public } from './auth/custom.decorator';
 import { MatchModule } from './match/match.module';
-import { QueueModule } from './queue/queue.module';
 
 // endpoint para checar se o sv está on
 @Controller()

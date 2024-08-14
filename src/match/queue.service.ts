@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, EntityManager } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { UUID } from 'crypto';
-import { Match, Players } from 'src/match/entities/match.entity';
+import { Match } from 'src/match/entities/match.entity';
 import { Piece } from 'src/match/entities/piece.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class QueueService {
@@ -12,55 +13,47 @@ export class QueueService {
     private dataSource: DataSource,
   ) {}
 
-  async getMatchAndPieces(uuid: UUID) {
-    const match = await this.dataSource
-      .getRepository(Match)
-      .findOneBy({ uuid });
-
-    if (!match) throw new NotFoundException('Match not found');
-
-    const pieces = await this.dataSource
-      .getRepository(Piece)
-      .findBy({ match: { uuid } });
-
-    return { match, pieces };
-  }
-
-  createMatch(createMatchDto: UUID[]) {
+  createMatch(usersIds: UUID[]) {
     return this.dataSource.transaction(async (manager) => {
-      let match = manager.create(Match, {
-        player1: { uuid: createMatchDto[0] },
-        player2: { uuid: createMatchDto[1] },
+      const match = manager.create(Match, {
+        player1: { uuid: usersIds[0] },
+        player2: { uuid: usersIds[1] },
       });
 
-      match = await manager.save(match);
+      const pieces = this.createPieces(match, usersIds);
 
-      const piecesP1 = this.createPiece(manager, match, 'player1');
-      const piecesP2 = this.createPiece(manager, match, 'player2');
-      const pieces = piecesP1.concat(piecesP2);
-
+      await manager.save(match);
       await manager.save(pieces);
 
       return { match, pieces };
     });
   }
 
-  createPiece(manager: EntityManager, match: Match, player: Players) {
-    const pY = player.endsWith('1') ? [[0, 2], [1]] : [[5, 7], [6]];
+  createPieces(match: Match, playersIds: UUID[]) {
+    // define as linhas a partir da coluna e do user
+    const pieceYmap = [
+      { colP: [1], colI: [0, 2] },
+      { colP: [5, 7], colI: [6] },
+    ];
 
     const pieces: Piece[] = [];
-    for (let i = 0; i < 8; i++) {
-      const altura = i % 2 === 0 ? pY[0] : pY[1];
+    // para cada jogador
+    for (const index in playersIds) {
+      const playerId = playersIds[index];
+      const pieceY = pieceYmap[index];
 
-      for (const casaY of altura) {
-        const piece = manager.create(Piece, {
-          match,
-          player: player,
-          x: i,
-          y: casaY,
-        });
-
-        pieces.push(piece);
+      // para cada coluna
+      for (let i = 0; i < 8; i++) {
+        const linhas = pieceY[i % 2 === 0 ? 'colP' : 'colI'];
+        // para cada linha
+        for (const linha of linhas) {
+          const piece = new Piece();
+          piece.match = match;
+          piece.player = { uuid: playerId } as User;
+          piece.x = i;
+          piece.y = linha;
+          pieces.push(piece);
+        }
       }
     }
 
