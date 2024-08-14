@@ -30,18 +30,22 @@ export class QueueService {
   }
 
   createPiece(manager: EntityManager, match: Match, player: Players) {
-    const pY = player.endsWith('1') ? [0, 1] : [6, 7];
+    const pY = player.endsWith('1') ? [[0, 2], [1]] : [[5, 7], [6]];
 
     const pieces: Piece[] = [];
     for (let i = 0; i < 8; i++) {
-      const piece = manager.create(Piece, {
-        match,
-        player: player,
-        x: i,
-        y: i % 2 === 0 ? pY[0] : pY[1],
-      });
+      const altura = i % 2 === 0 ? pY[0] : pY[1];
 
-      pieces.push(piece);
+      for (const casaY of altura) {
+        const piece = manager.create(Piece, {
+          match,
+          player: player,
+          x: i,
+          y: casaY,
+        });
+
+        pieces.push(piece);
+      }
     }
 
     return pieces;
