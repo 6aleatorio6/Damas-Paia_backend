@@ -7,7 +7,7 @@
   "rootDir": "..",
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/src/$1",
-    "test/setup": "<rootDir>/test/setup.ts"
+    "^test/(.*)$": "<rootDir>/test/$1"
   },
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
