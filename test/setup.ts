@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from 'src/app.module';
 import { DbTest } from './testDb';
 import { DataSource } from 'typeorm';
-import { AuthenticatedSocketIoAdapter } from 'src/auth/wsAuth.adapter';
+import { AuthenticatedSocketIoAdapter } from 'src/common/wsAuth.adapter';
 
 export const testRef = {} as {
   app: INestApplication;

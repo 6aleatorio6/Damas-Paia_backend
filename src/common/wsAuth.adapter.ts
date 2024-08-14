@@ -1,7 +1,7 @@
 import { INestApplicationContext } from '@nestjs/common';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions, Socket } from 'socket.io';
-import { JwtAuthService } from './jwt.service';
+import { JwtAuthService } from '../auth/jwt.service';
 
 // Solução inspirada em:
 // https://github.com/nestjs/nest/issues/882
