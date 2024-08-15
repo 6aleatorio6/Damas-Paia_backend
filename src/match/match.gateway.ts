@@ -34,7 +34,7 @@ export class MatchGateway {
       sockets.forEach((s) => {
         s.join(matchInfo.match.uuid);
         s.data.matchInfo = matchInfo;
-        s.emit('match', this.matchService.cleannerPieces(matchInfo.pieces));
+        s.emit('match', this.queueService.transformMatchInfo(matchInfo));
       });
     }
   }

@@ -1,9 +1,16 @@
 import { Server, Socket } from 'socket.io';
 import { Match } from './entities/match.entity';
 import { Piece } from './entities/piece.entity';
+import { UUID } from 'crypto';
+
+type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'> };
+type MatchPaiado = Match & { player1: Player; player2: Player };
+type MatchInfo = { match: Match; pieces: Piece[] };
+
+//
 
 interface ServerToClientEvents {
-  match: (pieces: Omit<Piece, 'match'>[]) => void;
+  match: (matchPaiado: MatchPaiado) => void;
 }
 
 interface ClientToServerEvents {
@@ -28,4 +35,6 @@ type SocketM = Socket<
   ServerToClientEvents,
   InterServerEvents,
   SocketData
->;
+> & { request: { user: { uuid: UUID } } };
+
+//
