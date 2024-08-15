@@ -47,7 +47,7 @@ export class QueueService {
         turn: players[0],
       });
 
-      const pieces = this.createPieces(match, usersIds);
+      const pieces = this.createPieces(match, players);
 
       await manager.save(match);
       await manager.save(pieces);
@@ -56,7 +56,7 @@ export class QueueService {
     });
   }
 
-  createPieces(match: Match, playersIds: UUID[]) {
+  createPieces(match: Match, players: User[]) {
     // define as linhas a partir da coluna e do user
     const pieceYmap = [
       { colP: [1], colI: [0, 2] },
@@ -65,8 +65,8 @@ export class QueueService {
 
     const pieces: Piece[] = [];
     // para cada jogador
-    for (const index in playersIds) {
-      const playerId = playersIds[index];
+    for (const index in players) {
+      const player = players[index];
       const pieceY = pieceYmap[index];
 
       // para cada coluna
@@ -76,7 +76,7 @@ export class QueueService {
         for (const linha of linhas) {
           const piece = new Piece();
           piece.match = match;
-          piece.player = { uuid: playerId } as User;
+          piece.player = player;
           piece.x = i;
           piece.y = linha;
           pieces.push(piece);
