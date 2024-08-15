@@ -3,12 +3,14 @@ import {
   SubscribeMessage,
   WebSocketServer,
   ConnectedSocket,
+  MessageBody,
 } from '@nestjs/websockets';
 import { MatchService } from './match.service';
-import { UseFilters } from '@nestjs/common';
+import { BadRequestException, UseFilters } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
 import { QueueService } from './queue.service';
 import { ServerM, SocketM } from './match.d';
+import { MatchMoveDto } from './dto/move.match.dto';
 
 @UseFilters(new WsExceptionsFilter())
 @WebSocketGateway({ cors: true })
@@ -37,5 +39,35 @@ export class MatchGateway {
         s.emit('match', this.queueService.transformMatchInfo(matchInfo));
       });
     }
+  }
+
+  @SubscribeMessage('match:move')
+  async move(
+    @ConnectedSocket() socket: SocketM,
+    @MessageBody() moveDto: MatchMoveDto,
+  ) {
+    const matchInfo = socket.data.matchInfo;
+    const userId = socket.request.user.uuid;
+
+    const isTurn = matchInfo.match.turn.uuid === userId;
+
+    if (!isTurn) throw new BadRequestException('Not your turn');
+
+    const pieces = await this.matchService.moveVerify();
+
+    socket.to(matchInfo.match.uuid).emit('match', pieces);
+    socket.emit('match', pieces);
+  }
+
+  @SubscribeMessage('match:getMov')
+  async getMove(
+    @ConnectedSocket() socket: SocketM,
+    @MessageBody() moveDto: MatchMoveDto,
+  ) {
+    const matchInfo = socket.data.matchInfo;
+    const userId = socket.request.user.uuid;
+    const pieceMove = this.matchService.pieceVerify(matchInfo, moveDto, userId);
+
+    return this.matchService.getMoviments(pieceMove);
   }
 }
