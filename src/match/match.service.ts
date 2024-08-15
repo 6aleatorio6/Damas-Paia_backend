@@ -4,7 +4,6 @@ import { Match } from './entities/match.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Piece } from './entities/piece.entity';
 import { MatchInfo } from './match';
-import { MatchMoveDto } from './dto/move.match.dto';
 import { UUID } from 'crypto';
 
 @Injectable()
@@ -18,53 +17,70 @@ export class MatchService {
 
   // async move(piece: Piece, move: PieceMove) {}
 
-  async getMoviments({ piece, pieces }: PieceMove) {
-    const direcao = [[-1, 1], [1, 1], [-1, -1], [1 - 1]];
-    const caminhos: Paia[][] = [[], [], [], []];
+  async getMoviments({ piece, pieces }: PieceVerify) {
+    const caminhos: Coord[][] = [];
+    const direcao: Direcao[] = [
+      [-1, 1], // cima esquerda
+      [1, 1], // cima direita
+      [-1, -1], // baixo esquerda
+      [1, -1], // baixo direita
+    ];
 
-    for (const inCami in caminhos) {
-      if (!piece.queen && +inCami > 1) break;
+    const isTop = piece.player.uuid === piece.match.player1.uuid;
+    if (isTop) direcao.reverse();
 
-      for (let i = 1; i <= 7; i++) {
-        const xF = piece.x + direcao[inCami][0] * i;
-        const yF = piece.y + direcao[inCami][1] * i;
-
-        if (xF < 0 || xF > 7 || yF < 0 || yF > 7) break;
-
-        const oCaminho = caminhos[inCami];
-        const p = pieces.find((p) => p.x === xF && p.y === yF);
-
-        const isMyPiece = p?.player.uuid === piece.player.uuid;
-
-        if (isMyPiece) break;
-
-        oCaminho.push({ coord: { x: xF, y: yF }, piece: p });
-
-        if (oCaminho.length < 2) continue;
-        const is2CasaVazia = oCaminho.at(-1).piece && oCaminho.at(-2).piece;
-        const is2CasaCheia = !oCaminho.at(-1).piece && !oCaminho.at(-2).piece;
-
-        if (is2CasaVazia || is2CasaCheia) break;
-      }
+    for (const dir of direcao) {
+      const caminho = this.verifyCaminho(pieces, piece, dir);
+      // transforma o caminho em um array de coordenadas  [{x: 1, y: 2}, {x: 2, y: 3}]
+      caminhos.push(caminho.filter((c) => !c.piece).map((c) => c.coord));
     }
 
     return caminhos;
   }
 
-  pieceVerify(matchInfo: MatchInfo, moveDto: MatchMoveDto, userId: UUID) {
-    const isTurn = matchInfo.match.turn.uuid === userId;
-    if (!isTurn) throw new BadRequestException('Not your turn');
+  private verifyCaminho(pieces: Piece[], piece: Piece, direcao: Direcao) {
+    const caminho: Square[] = [];
 
-    const piece = matchInfo.pieces.find((p) => p.id === moveDto.id);
-    if (!piece) throw new BadRequestException('Piece not found');
+    for (let i = 1; i <= 7; i++) {
+      const x = piece.x + direcao[0] * i;
+      const y = piece.y + direcao[1] * i;
+
+      if (x < 0 || x > 7 || y < 0 || y > 7) break;
+
+      // pega a peça na posição x, y se existir
+      const squarePiece = pieces.find((p) => p.x === x && p.y === y);
+      // verifica se a peça é do jogador, se for para o loop
+      const isMyPiece = squarePiece?.player.uuid === piece.player.uuid;
+      if (isMyPiece) break;
+
+      if (caminho.length >= 1) {
+        const is2CasaVazia = !squarePiece && !caminho.at(-1).piece;
+        const is2CasaOcupada = squarePiece && caminho.at(-1).piece;
+
+        if ((!piece.queen && is2CasaVazia) || is2CasaOcupada) break;
+      }
+
+      caminho.push({ coord: { x, y }, piece: squarePiece });
+    }
+
+    return caminho;
+  }
+
+  pieceVerify(matchInfo: MatchInfo, pieceId: number, userId: UUID) {
+    const isTurn = matchInfo.match.turn.uuid === userId;
+    if (!isTurn) throw new BadRequestException('Não é seu turno');
+
+    const piece = matchInfo.pieces.find((p) => p.id === pieceId);
+    if (!piece) throw new BadRequestException('Peça não encontrada');
 
     const isMyPiece = piece.player.uuid === userId;
-    if (!isMyPiece) throw new BadRequestException('Not your piece');
+    if (!isMyPiece) throw new BadRequestException('Peça não é sua');
 
-    return { piece, to: moveDto.to, pieces: matchInfo.pieces } as PieceMove;
+    return { piece, pieces: matchInfo.pieces } as PieceVerify;
   }
 }
 
 export type Coord = { x: number; y: number };
-type PieceMove = { piece: Piece; to: Coord; pieces: Piece[] };
-type Paia = { piece?: Piece; coord: Coord };
+type PieceVerify = { piece: Piece; pieces: Piece[] };
+type Direcao = [number, number];
+type Square = { coord: Coord; piece?: Piece };
