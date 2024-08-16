@@ -17,7 +17,7 @@ export class MatchService {
 
   // async move(piece: Piece, move: PieceMove) {}
 
-  async getMoviments({ piece, pieces }: PieceVerify) {
+  getMoviments({ piece, pieces }: PieceVerify) {
     const caminhos: Coord[][] = [];
     const direcao: Direcao[] = [
       [-1, 1], // cima esquerda
@@ -26,14 +26,14 @@ export class MatchService {
       [1, -1], // baixo direita
     ];
 
-    const isTop = piece.player.uuid === piece.match.player1.uuid;
-    if (isTop) direcao.reverse();
+    // inverte a direção se for a vez do player2
+    if (piece.match.player2 == piece.player) direcao.reverse();
 
-    for (const dir of direcao) {
+    direcao.forEach((dir, i) => {
+      if (!piece.queen && i > 1) return;
       const caminho = this.verifyCaminho(pieces, piece, dir);
-      // transforma o caminho em um array de coordenadas  [{x: 1, y: 2}, {x: 2, y: 3}]
       caminhos.push(caminho.filter((c) => !c.piece).map((c) => c.coord));
-    }
+    });
 
     return caminhos;
   }
@@ -49,8 +49,7 @@ export class MatchService {
 
       // pega a peça na posição x, y se existir
       const squarePiece = pieces.find((p) => p.x === x && p.y === y);
-      // verifica se a peça é do jogador, se for para o loop
-      const isMyPiece = squarePiece?.player.uuid === piece.player.uuid;
+      const isMyPiece = squarePiece?.player === piece.player;
       if (isMyPiece) break;
 
       if (caminho.length >= 1) {
