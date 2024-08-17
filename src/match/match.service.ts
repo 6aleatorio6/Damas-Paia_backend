@@ -51,7 +51,7 @@ export class MatchService {
       caminhos.push(caminho.map((c) => c.coord)); // pega só as coordenadas
     });
 
-    return caminhos.flat(); // achatando o array
+    return caminhos;
   }
 
   /**

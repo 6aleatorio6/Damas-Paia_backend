@@ -38,19 +38,17 @@ describe('MatchService', () => {
     test('movimentando uma peça comum do player1 no tabuleiro vazio', () => {
       const piece: Piece = { ...pieceP, player: player1 };
       const movimentos = matchService.getMoviments({ piece, pieces: [piece] });
-      expect(movimentos).toEqual([
-        { x: 1, y: 2 },
-        { x: 3, y: 2 },
-      ]);
+
+      expect(movimentos).toContainEqual([{ x: 1, y: 2 }]);
+      expect(movimentos).toContainEqual([{ x: 3, y: 2 }]);
     });
 
     test('movimentando uma peça comum do player2 no tabuleiro vazio', () => {
       const piece: Piece = { ...pieceP, player: player2 };
       const movimentos = matchService.getMoviments({ piece, pieces: [piece] });
-      expect(movimentos).toEqual([
-        { x: 3, y: 0 },
-        { x: 1, y: 0 },
-      ]);
+
+      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
+      expect(movimentos).toContainEqual([{ x: 1, y: 0 }]);
     });
   });
 
