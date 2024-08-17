@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { Match } from 'src/match/entities/match.entity';
 import { Piece } from 'src/match/entities/piece.entity';
@@ -10,9 +10,28 @@ import { MatchInfo, MatchPaiado, PlayerPaiado } from './match';
 @Injectable()
 export class QueueService {
   constructor(
+    @InjectRepository(Match)
+    private matchRepository: Repository<Match>,
     @InjectDataSource()
     private dataSource: DataSource,
   ) {}
+
+
+  private mapTurn = new Map<UUID, () => void>();
+  timeoutToogleTurn(match: Match, cb: () => void) {
+    this.mapTurn.delete(match.uuid);
+    const timeoutId = setTimeout(() => {
+      const isPlayer1 = match.player1.uuid === match.turn.uuid;
+      match.turn = isPlayer1 ? match.player2 : match.player1;
+
+      cb();
+
+      this.mapTurn.delete(match.uuid);
+      return this.matchRepository.save(match);
+    }, 3000);
+
+    this.mapTurn.set(match.uuid, () => clearTimeout(timeoutId));
+  }
 
   /**
    * transforma o MatchInfo em um MatchPaiado

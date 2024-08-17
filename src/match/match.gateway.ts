@@ -5,10 +5,10 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { MatchService } from './match.service';
-import { BadRequestException, UseFilters } from '@nestjs/common';
+import { UseFilters } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
 import { QueueService } from './queue.service';
-import { ServerM, SocketM } from './match.d';
+import { MatchInfo, ServerM, SocketM } from './match.d';
 import { MatchMoveDto } from './dto/move.match.dto';
 
 @UseFilters(new WsExceptionsFilter())
@@ -20,6 +20,11 @@ export class MatchGateway {
     private readonly matchService: MatchService,
     private readonly queueService: QueueService,
   ) {}
+
+  private toogleTurn = ({ match }: MatchInfo) =>
+    this.queueService.timeoutToogleTurn(match, () =>
+      this.io.to(match.uuid).emit('match:turn', match.turn.uuid),
+    );
 
   @SubscribeMessage('match:queue')
   async matching(@ConnectedSocket() socket: SocketM) {
@@ -35,7 +40,8 @@ export class MatchGateway {
       sockets.forEach((s) => {
         s.join(matchInfo.match.uuid);
         s.data.matchInfo = matchInfo;
-        s.emit('match', this.queueService.transformMatchInfo(matchInfo));
+        s.emit('match:start', this.queueService.transformMatchInfo(matchInfo));
+        this.toogleTurn(matchInfo);
       });
     }
   }
