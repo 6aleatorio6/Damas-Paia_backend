@@ -29,6 +29,7 @@ export class QueueService {
 
     return {
       ...match,
+      turn: match.turn.uuid,
       player1: { ...match.player1, pieces: piecesP1 } as PlayerPaiado,
       player2: { ...match.player2, pieces: piecesP2 } as PlayerPaiado,
     } as MatchPaiado;

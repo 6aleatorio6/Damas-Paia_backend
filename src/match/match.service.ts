@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import { Match } from './entities/match.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Piece } from './entities/piece.entity';
-import { MatchInfo } from './match';
+import { Casa, Coord, MatchInfo, PieceVerify } from './match';
 import { UUID } from 'crypto';
 
 // O TABULEIRO COMEÇA NO CANTO INFERIOR ESQUERDO
@@ -62,7 +62,7 @@ export class MatchService {
    * um dia eu volto pra refatorar isso
    */
   getPath(pieces: Piece[], piece: Piece, direcao: DMap) {
-    const caminho: Square[] = [];
+    const caminho: Casa[] = [];
 
     let comeu = false;
     for (let i = 1; i <= 7; i++) {
@@ -118,7 +118,3 @@ export class MatchService {
     return { piece, pieces: matchInfo.pieces } as PieceVerify;
   }
 }
-
-export type Coord = { x: number; y: number };
-type PieceVerify = { piece: Piece; pieces: Piece[] };
-type Square = { coord: Coord; piece?: Piece };

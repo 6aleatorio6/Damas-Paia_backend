@@ -2,12 +2,10 @@ import { Server, Socket } from 'socket.io';
 import { Match } from './entities/match.entity';
 import { Piece } from './entities/piece.entity';
 import { UUID } from 'crypto';
+import { User } from 'src/user/entities/user.entity';
 
-type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'> };
-type MatchPaiado = Match & { player1: Player; player2: Player };
+// Match
 type MatchInfo = { match: Match; pieces: Piece[] };
-
-//
 
 interface ServerToClientEvents {
   match: (matchPaiado: MatchPaiado) => void;
@@ -37,4 +35,24 @@ type SocketM = Socket<
   SocketData
 > & { request: { user: { uuid: UUID } } };
 
-//
+// MatchService
+interface Coord {
+  x: number;
+  y: number;
+}
+interface Casa {
+  coord: Coord;
+  piece?: Piece;
+}
+interface PieceVerify {
+  piece: Piece;
+  pieces: Piece[];
+}
+
+// QueueService
+type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'> };
+type MatchPaiado = Match & {
+  player1: PlayerPaiado;
+  player2: PlayerPaiado;
+  turn: UUID;
+};
