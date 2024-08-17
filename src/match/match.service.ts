@@ -64,6 +64,7 @@ export class MatchService {
   getPath(pieces: Piece[], piece: Piece, direcao: DMap) {
     const caminho: Square[] = [];
 
+    let comeu = false;
     for (let i = 1; i <= 7; i++) {
       const x = piece.x + dEnum[direcao][0] * i;
       const y = piece.y + dEnum[direcao][1] * i;
@@ -71,18 +72,30 @@ export class MatchService {
       if (x < 0 || x > 7 || y < 0 || y > 7) break;
 
       // pega a peça na posição x, y se existir
-      const squarePiece = pieces.find((p) => p.x === x && p.y === y);
-      const isMyPiece = squarePiece?.player === piece.player;
+      const PecaAtual = pieces.find((p) => p.x === x && p.y === y);
+      const isMyPiece = PecaAtual?.player === piece.player;
       if (isMyPiece) break;
 
-      if (caminho.length >= 1) {
-        const is2CasaVazia = !squarePiece && !caminho.at(-1).piece;
-        const is2CasaOcupada = squarePiece && caminho.at(-1).piece;
+      const casaAnterior = caminho.at(-1);
 
-        if ((!piece.queen && is2CasaVazia) || is2CasaOcupada) break;
+      if (casaAnterior) {
+        // verifica se a primeira casa do caminho de uma peça comum está vazia, se sim, o caminho é interrompido
+        const isfirstCasa = caminho[0];
+        if (!isfirstCasa?.piece && !piece.queen) break;
+
+        // verifica se a ultima casa do caminho e a atual estão ocupadas
+        const is2CasaOcupada = PecaAtual && casaAnterior.piece;
+        if (is2CasaOcupada) break;
+
+        // se a casa anterior e a atual estiverem vazias, e a peça não for uma dama ou já tiver comido
+        // uma peça, o caminho é interrompido na casa anterior
+        const is2CasaVazia = !PecaAtual && !casaAnterior.piece;
+        const podeMoverVariasCasas = piece.queen && !comeu;
+        if (is2CasaVazia && !podeMoverVariasCasas) break;
       }
 
-      caminho.push({ coord: { x, y }, piece: squarePiece });
+      caminho.push({ coord: { x, y }, piece: PecaAtual });
+      if (PecaAtual) comeu = true;
     }
 
     return caminho;
