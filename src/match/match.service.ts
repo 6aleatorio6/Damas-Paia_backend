@@ -1,9 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { Match } from './entities/match.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Piece } from './entities/piece.entity';
-import { Casa, Coord, MatchInfo, PieceVerify } from './match';
+import { Casa, Coord, MatchInfo, PieceVerify, ReturnMove } from './match';
 import { UUID } from 'crypto';
 
 // O TABULEIRO COMEÇA NO CANTO INFERIOR ESQUERDO
@@ -25,13 +24,40 @@ type DMap = keyof typeof dEnum;
 @Injectable()
 export class MatchService {
   constructor(
-    @InjectRepository(Match)
-    private matchRepository: Repository<Match>,
     @InjectRepository(Piece)
     private pieceRepository: Repository<Piece>,
   ) {}
 
-  // async move(piece: Piece, move: PieceMove) {}
+  async move(coord: Coord, { piece, pieces }: PieceVerify) {
+    const caminho = this.getPath(pieces, piece, this.iDire(coord, piece));
+
+    const index = caminho.findIndex(
+      (c) => c.coord.x === coord.x && c.coord.y === coord.y,
+    );
+    if (index === -1) throw new BadRequestException('Movimento inválido');
+
+    const piecesEnemys = caminho.slice(0, index).filter((c) => c.piece);
+
+    if (piecesEnemys[0]) {
+      await this.pieceRepository.delete(piecesEnemys.map((p) => p.piece.id));
+    }
+    pieces[index] = this.pieceRepository.merge(piece, coord);
+    await this.pieceRepository.save(pieces);
+
+    piecesEnemys.forEach((p) => pieces.splice(pieces.indexOf(p.piece), 1));
+
+    return {
+      DEAD: piecesEnemys.map((p) => p.piece.id),
+      UPDATE: pieces[index],
+    } satisfies ReturnMove;
+  }
+
+  private iDire(coord: Coord, piece: Piece) {
+    const dV = piece.x - coord.x < 1 ? 'down' : 'up';
+    const dH = piece.y - coord.y < 1 ? 'Right' : 'Left';
+
+    return (dV + dH) as DMap;
+  }
 
   /**
    * retorna um array de coordenadas possíveis para a peça se mover

@@ -46,22 +46,28 @@ export class MatchGateway {
     }
   }
 
-  // @SubscribeMessage('match:move')
-  // async move(socket: SocketM, moveDto: MatchMoveDto) {
-  //   const matchInfo = socket.data.matchInfo;
-  //   const userId = socket.request.user.uuid;
-  //   const pieceMove = this.matchService.pieceVerify(matchInfo, pieceId, userId);
+  @SubscribeMessage('match:move')
+  async move(socket: SocketM, moveDto: MatchMoveDto) {
+    const matchInfo = socket.data.matchInfo;
+    const userId = socket.request.user.uuid;
+    const pMove = this.matchService.verifyPiece(matchInfo, moveDto.id, userId);
 
-  //   socket.to(matchInfo.match.uuid).emit('match', pieces);
-  //   socket.emit('match', pieces);
-  // }
+    const res = await this.matchService.move(moveDto.to, pMove);
+    this.toogleTurn(matchInfo);
 
-  @SubscribeMessage('match:getMov')
+    this.io.to(matchInfo.match.uuid).emit('match:update', res);
+
+    return 'PAIA';
+  }
+
+  @SubscribeMessage('match:path')
   async getMove(socket: SocketM, pieceId: number) {
     const matchInfo = socket.data.matchInfo;
     const userId = socket.request.user.uuid;
-    const pieceMove = this.matchService.pieceVerify(matchInfo, pieceId, userId);
+    const pieceMove = this.matchService.verifyPiece(matchInfo, pieceId, userId);
 
-    return this.matchService.getMoviments(pieceMove);
+    const res = this.matchService.getMoviments(pieceMove);
+
+    return res || null;
   }
 }
