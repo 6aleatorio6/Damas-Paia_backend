@@ -25,10 +25,31 @@ type DMap = keyof typeof dEnum;
 
 @Injectable()
 export class PieceMatchService {
-  constructor(
-    @InjectRepository(Piece)
-    private pieceRepository: Repository<Piece>,
-  ) {}
+  /**
+   * O `getTrail` recebe a peça e as peças do tabuleiro e a coordenada que o jogador quer mover e
+   * retorna um objeto com as peças que a peça comeu e as casas que a peça passou.
+   *
+   *
+   * 1. Primeiro ele verifica a direção que a peça está indo, e pega o caminho dessa direção.
+   * 2. Ele pega o index da casa que o jogador quer mover, se não existir, o movimento é inválido.
+   * 3. No fim ele pega as peças que a peça comeu e as casas que a peça passou e retorna em um objeto.
+   *
+   */
+  getTrail({ piece, pieces }: PieceVerify, c: Coord) {
+    const direcao =
+      (piece.x - c.x < 1 ? 'down' : 'up') + // horizontal
+      (piece.y - c.y < 1 ? 'Right' : 'Left'); //vertical
+
+    const path = this.getPath(pieces, piece, direcao as DMap);
+    // pega o index da casa que o jogador quer mover, se não existir, o movimento é inválido
+    const movI = path.findIndex(({ coord: { x, y } }) => c.x == x && c.y == y);
+    if (movI === -1) throw new BadRequestException('Movimento inválido');
+
+    const piecesEnemys = path.slice(0, movI).filter((c) => c.piece);
+    const movs = path.slice(0, movI).filter((c) => !c.coord);
+
+    return { piecesEnemys, movs };
+  }
 
   /**
    * retorna um array de coordenadas possíveis para a peça se mover
