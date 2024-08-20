@@ -3,12 +3,11 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { Match } from 'src/match/entities/match.entity';
-import { Piece } from 'src/match/entities/piece.entity';
 import { User } from 'src/user/entities/user.entity';
 import { MatchInfo, MatchPaiado, PlayerPaiado } from './match';
 
 @Injectable()
-export class GameMatch {
+export class MatchService {
   constructor(
     @InjectRepository(Match)
     private matchRepository: Repository<Match>,
@@ -81,36 +80,5 @@ export class GameMatch {
 
       return { match, pieces };
     });
-  }
-
-  createPieces(match: Match, players: User[]) {
-    // define as linhas a partir da coluna e do user
-    const pieceYmap = [
-      { colP: [1], colI: [0, 2] },
-      { colP: [5, 7], colI: [6] },
-    ];
-
-    const pieces: Piece[] = [];
-    // para cada jogador
-    for (const index in players) {
-      const player = players[index];
-      const pieceY = pieceYmap[index];
-
-      // para cada coluna
-      for (let i = 0; i < 8; i++) {
-        const linhas = pieceY[i % 2 === 0 ? 'colP' : 'colI'];
-        // para cada linha
-        for (const linha of linhas) {
-          const piece = new Piece();
-          piece.match = match;
-          piece.player = player;
-          piece.x = i;
-          piece.y = linha;
-          pieces.push(piece);
-        }
-      }
-    }
-
-    return pieces;
   }
 }
