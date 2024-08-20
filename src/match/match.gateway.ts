@@ -4,12 +4,12 @@ import {
   WebSocketServer,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { MatchService } from './match.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
-import { QueueService } from './';
 import { MatchInfo, ServerM, SocketM } from './match.d';
 import { MatchMoveDto } from './dto/move.match.dto';
+import { PieceMatchService } from './piece-match.service';
+import { MatchService } from './match.service';
 
 @UseFilters(new WsExceptionsFilter())
 @WebSocketGateway({ cors: true })
@@ -17,12 +17,12 @@ export class MatchGateway {
   @WebSocketServer() io: ServerM;
 
   constructor(
+    private readonly pieceMatch: PieceMatchService,
     private readonly matchService: MatchService,
-    private readonly queueService: QueueService,
   ) {}
 
   private toogleTurn = ({ match }: MatchInfo) =>
-    this.queueService.timeoutToogleTurn(match, () =>
+    this.matchService.timeoutToogleTurn(match, () =>
       this.io.to(match.uuid).emit('match:turn', match.turn.uuid),
     );
 
@@ -35,12 +35,12 @@ export class MatchGateway {
       sockets.forEach((s) => s.leave('queue'));
 
       const uuids = sockets.map((s: any) => s.request.user.uuid);
-      const matchInfo = await this.queueService.createMatch(uuids);
+      const matchInfo = await this.matchService.createMatch(uuids);
 
       sockets.forEach((s) => {
         s.join(matchInfo.match.uuid);
         s.data.matchInfo = matchInfo;
-        s.emit('match:start', this.queueService.transformMatchInfo(matchInfo));
+        s.emit('match:start', this.matchService.transformMatchInfo(matchInfo));
         this.toogleTurn(matchInfo);
       });
     }
@@ -50,9 +50,9 @@ export class MatchGateway {
   async move(socket: SocketM, moveDto: MatchMoveDto) {
     const matchInfo = socket.data.matchInfo;
     const userId = socket.request.user.uuid;
-    const pMove = this.matchService.verifyPiece(matchInfo, moveDto.id, userId);
+    const pMove = this.pieceMatch.verifyPiece(matchInfo, moveDto.id, userId);
 
-    const res = await this.matchService.move(moveDto.to, pMove);
+    const res = await this.pieceMatch.move(moveDto.to, pMove);
     this.toogleTurn(matchInfo);
 
     this.io.to(matchInfo.match.uuid).emit('match:update', res);
@@ -64,9 +64,9 @@ export class MatchGateway {
   async getMove(socket: SocketM, pieceId: number) {
     const matchInfo = socket.data.matchInfo;
     const userId = socket.request.user.uuid;
-    const pieceMove = this.matchService.verifyPiece(matchInfo, pieceId, userId);
+    const pieceMove = this.pieceMatch.verifyPiece(matchInfo, pieceId, userId);
 
-    const res = this.matchService.getMoviments(pieceMove);
+    const res = this.pieceMatch.getMoviments(pieceMove);
 
     return res || null;
   }

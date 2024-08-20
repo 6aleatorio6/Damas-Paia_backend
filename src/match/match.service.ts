@@ -5,6 +5,7 @@ import { UUID } from 'crypto';
 import { Match } from 'src/match/entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
 import { MatchInfo, MatchPaiado, PlayerPaiado } from './match';
+import { PieceMatchService } from './piece-match.service';
 
 @Injectable()
 export class MatchService {
@@ -13,6 +14,8 @@ export class MatchService {
     private matchRepository: Repository<Match>,
     @InjectDataSource()
     private dataSource: DataSource,
+
+    private pieceMatch: PieceMatchService,
   ) {}
 
   setWinner(match: Match, UserId: UUID) {
@@ -73,7 +76,7 @@ export class MatchService {
         turn: players[0],
       });
 
-      const pieces = this.createPieces(match, players);
+      const pieces = this.pieceMatch.createPieces(match, players);
 
       await manager.save(match);
       await manager.save(pieces);
