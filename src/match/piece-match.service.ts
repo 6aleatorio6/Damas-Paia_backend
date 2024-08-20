@@ -2,8 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Piece } from './entities/piece.entity';
-import { Casa, Coord, MatchInfo, PieceVerify, ReturnMove } from './match';
+import { Casa, Coord, MatchInfo, PieceVerify } from './match';
 import { UUID } from 'crypto';
+import { Match } from './entities/match.entity';
+import { User } from 'src/user/entities/user.entity';
 
 // O TABULEIRO COMEÇA NO CANTO INFERIOR ESQUERDO
 // 7 [0,1,2,3,4,5,6,7]
@@ -27,37 +29,6 @@ export class PieceMatchService {
     @InjectRepository(Piece)
     private pieceRepository: Repository<Piece>,
   ) {}
-
-  async move(coord: Coord, { piece, pieces }: PieceVerify) {
-    const caminho = this.getPath(pieces, piece, this.iDire(coord, piece));
-
-    const index = caminho.findIndex(
-      (c) => c.coord.x === coord.x && c.coord.y === coord.y,
-    );
-    if (index === -1) throw new BadRequestException('Movimento inválido');
-
-    const piecesEnemys = caminho.slice(0, index).filter((c) => c.piece);
-
-    if (piecesEnemys[0]) {
-      await this.pieceRepository.delete(piecesEnemys.map((p) => p.piece.id));
-    }
-    pieces[index] = this.pieceRepository.merge(piece, coord);
-    await this.pieceRepository.save(pieces);
-
-    piecesEnemys.forEach((p) => pieces.splice(pieces.indexOf(p.piece), 1));
-
-    return {
-      DEAD: piecesEnemys.map((p) => p.piece.id),
-      UPDATE: pieces[index],
-    } satisfies ReturnMove;
-  }
-
-  private iDire(coord: Coord, piece: Piece) {
-    const dV = piece.x - coord.x < 1 ? 'down' : 'up';
-    const dH = piece.y - coord.y < 1 ? 'Right' : 'Left';
-
-    return (dV + dH) as DMap;
-  }
 
   /**
    * retorna um array de coordenadas possíveis para a peça se mover
@@ -142,5 +113,36 @@ export class PieceMatchService {
     if (!isMyPiece) throw new BadRequestException('Peça não é sua');
 
     return { piece, pieces: matchInfo.pieces } as PieceVerify;
+  }
+
+  createPieces(match: Match, players: User[]) {
+    // define as linhas a partir da coluna e do user
+    const pieceYmap = [
+      { colP: [1], colI: [0, 2] },
+      { colP: [5, 7], colI: [6] },
+    ];
+
+    const pieces: Piece[] = [];
+    // para cada jogador
+    for (const index in players) {
+      const player = players[index];
+      const pieceY = pieceYmap[index];
+
+      // para cada coluna
+      for (let i = 0; i < 8; i++) {
+        const linhas = pieceY[i % 2 === 0 ? 'colP' : 'colI'];
+        // para cada linha
+        for (const linha of linhas) {
+          const piece = new Piece();
+          piece.match = match;
+          piece.player = player;
+          piece.x = i;
+          piece.y = linha;
+          pieces.push(piece);
+        }
+      }
+    }
+
+    return pieces;
   }
 }
