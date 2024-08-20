@@ -22,7 +22,7 @@ const dEnum = {
 type DMap = keyof typeof dEnum;
 
 @Injectable()
-export class MatchService {
+export class PieceMatchService {
   constructor(
     @InjectRepository(Piece)
     private pieceRepository: Repository<Piece>,
