@@ -7,7 +7,7 @@ import {
 import { MatchService } from './match.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
-import { QueueService } from './queue.service';
+import { QueueService } from './';
 import { MatchInfo, ServerM, SocketM } from './match.d';
 import { MatchMoveDto } from './dto/move.match.dto';
 

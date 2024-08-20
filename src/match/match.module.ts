@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
-import { MatchService } from './match.service';
 import { MatchGateway } from './match.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Match } from './entities/match.entity';
 import { Piece } from './entities/piece.entity';
-import { QueueService } from './queue.service';
+import { PieceMatchService } from './piece-match.service';
+import { GameMatch } from './game-match';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Match, Piece])],
-  providers: [MatchGateway, MatchService, QueueService],
+  providers: [MatchGateway, PieceMatchService, GameMatch],
   exports: [TypeOrmModule],
 })
 export class MatchModule {}

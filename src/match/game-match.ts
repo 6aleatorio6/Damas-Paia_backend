@@ -8,7 +8,7 @@ import { User } from 'src/user/entities/user.entity';
 import { MatchInfo, MatchPaiado, PlayerPaiado } from './match';
 
 @Injectable()
-export class QueueService {
+export class GameMatch {
   constructor(
     @InjectRepository(Match)
     private matchRepository: Repository<Match>,
@@ -16,6 +16,13 @@ export class QueueService {
     private dataSource: DataSource,
   ) {}
 
+  setWinner(match: Match, UserId: UUID) {
+    const isPlayer1 = match.player1.uuid === UserId;
+
+    match.winner = isPlayer1 ? match.player1 : match.player2;
+    match.dateEnd = new Date();
+    return this.matchRepository.save(match);
+  }
 
   private mapTurn = new Map<UUID, () => void>();
   timeoutToogleTurn(match: Match, cb: () => void) {
