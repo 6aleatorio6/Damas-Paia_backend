@@ -14,7 +14,6 @@ export class MatchService {
     private matchRepository: Repository<Match>,
     @InjectDataSource()
     private dataSource: DataSource,
-
     private pieceMatch: PieceMatchService,
   ) {}
 
