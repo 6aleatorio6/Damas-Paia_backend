@@ -1,6 +1,6 @@
 import { IsNumber, ValidateNested } from 'class-validator';
 
-export class MatchMoveDto {
+export class MoveDto {
   @IsNumber()
   id: number;
 

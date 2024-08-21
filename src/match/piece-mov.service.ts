@@ -63,10 +63,10 @@ export class PieceMovService {
     const movI = path.findIndex(({ coord: { x, y } }) => c.x == x && c.y == y);
     if (movI === -1) throw new BadRequestException('Movimento inválido');
 
-    const piecesEnemys = path.slice(0, movI).filter((c) => c.piece);
+    const pieceRival = path.slice(0, movI).filter((c) => c.piece);
     const movs = path.slice(0, movI + 1).filter((c) => !c.piece);
 
-    return { piecesEnemys, movs };
+    return { pieceRival, movs };
   }
 
   /**
