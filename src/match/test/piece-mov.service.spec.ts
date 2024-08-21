@@ -3,6 +3,7 @@ import { Match } from '../entities/match.entity';
 import { Piece } from '../entities/piece.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PieceMovService } from '../piece-mov.service';
+import { BadRequestException } from '@nestjs/common';
 
 const userPaia = { email: 'leonar', password: '123', username: 'leonar' };
 
@@ -17,7 +18,7 @@ const match: Match = {
   dateInit: null,
 };
 
-const pieceP = { id: 1, x: 2, y: 1, queen: false, match };
+const pieceP = { id: 1, x: 2, y: 1, queen: false, match } as const;
 
 describe('PiecePService', () => {
   let pieceMov: PieceMovService;
@@ -26,21 +27,76 @@ describe('PiecePService', () => {
     pieceMov = TestBed.create(PieceMovService).compile().unit;
   });
 
-  describe('getMoviments', () => {
-    test('movimentando uma peça comum do player1 no tabuleiro vazio', () => {
+  describe('getTrail', () => {
+    test('deve retornar a trilha de avanço de uma peça comum do player1', () => {
       const piece: Piece = { ...pieceP, player: player1 };
-      const movimentos = pieceMov.getMoviments({ piece, pieces: [piece] });
+      const pieces = [piece];
 
+      const trailUpR = pieceMov.getTrail({ piece, pieces }, { x: 1, y: 2 });
+      expect(trailUpR.movs).toEqual([{ coord: { x: 1, y: 2 } }]);
+
+      const trailUpL = pieceMov.getTrail({ piece, pieces }, { x: 3, y: 2 });
+      expect(trailUpL.movs).toEqual([{ coord: { x: 3, y: 2 } }]);
+    });
+
+    test('deve retornar a trilha de avanço de uma peça comum do player2', () => {
+      const piece: Piece = { ...pieceP, player: player2 };
+      const pieces = [piece];
+
+      const trailDownR = pieceMov.getTrail({ piece, pieces }, { x: 1, y: 0 });
+      expect(trailDownR.movs).toEqual([{ coord: { x: 1, y: 0 } }]);
+
+      const trailDownL = pieceMov.getTrail({ piece, pieces }, { x: 3, y: 0 });
+      expect(trailDownL.movs).toEqual([{ coord: { x: 3, y: 0 } }]);
+    });
+
+    test('deve lançar uma BadRequestException ao mover para uma posição inválida', () => {
+      const piece: Piece = { ...pieceP, player: player1 };
+      const pieces = [piece, { ...pieceP, player: player1, x: 3, y: 2 }];
+
+      expect(() => {
+        pieceMov.getTrail({ piece, pieces }, { x: 3, y: 2 });
+      }).toThrow(BadRequestException);
+    });
+  });
+
+  describe('getMoviments', () => {
+    test('deve retornar os movimentos possíveis de uma peça comum do player1', () => {
+      const piece: Piece = { ...pieceP, player: player1 };
+      const pieces = [piece];
+
+      const movimentos = pieceMov.getMoviments({ pieces, piece });
       expect(movimentos).toContainEqual([{ x: 1, y: 2 }]);
       expect(movimentos).toContainEqual([{ x: 3, y: 2 }]);
     });
 
-    test('movimentando uma peça comum do player2 no tabuleiro vazio', () => {
+    test('deve retornar os movimentos possíveis de uma peça comum do player2', () => {
       const piece: Piece = { ...pieceP, player: player2 };
-      const movimentos = pieceMov.getMoviments({ piece, pieces: [piece] });
+      const pieces = [piece];
 
-      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
+      const movimentos = pieceMov.getMoviments({ pieces, piece });
       expect(movimentos).toContainEqual([{ x: 1, y: 0 }]);
+      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
+    });
+
+    test('deve retornar os movimentos possíveis de uma Dama do player1', () => {
+      const piece: Piece = { ...pieceP, player: player1, queen: true };
+      const pieces = [piece];
+
+      const movimentos = pieceMov.getMoviments({ pieces, piece });
+      expect(movimentos).toContainEqual([{ x: 1, y: 0 }]);
+      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
+      expect(movimentos).toContainEqual([
+        { x: 1, y: 2 },
+        { x: 0, y: 3 },
+      ]);
+      expect(movimentos).toContainEqual([
+        { x: 3, y: 2 },
+        { x: 4, y: 3 },
+        { x: 5, y: 4 },
+        { x: 6, y: 5 },
+        { x: 7, y: 6 },
+      ]);
     });
   });
 
