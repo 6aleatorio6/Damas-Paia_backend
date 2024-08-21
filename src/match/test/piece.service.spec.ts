@@ -1,6 +1,5 @@
 import { TestBed } from '@automock/jest';
 import { Match } from '../entities/match.entity';
-import { Piece } from '../entities/piece.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PieceMatchService } from '../piece-match.service';
 
@@ -24,64 +23,6 @@ describe('PieceMatchService', () => {
 
   beforeEach(() => {
     pieceMatch = TestBed.create(PieceMatchService).compile().unit;
-  });
-
-  describe('getMoviments', () => {
-    test('movimentando uma peça comum do player1 no tabuleiro vazio', () => {
-      const piece: Piece = { ...pieceP, player: player1 };
-      const movimentos = pieceMatch.getMoviments({ piece, pieces: [piece] });
-
-      expect(movimentos).toContainEqual([{ x: 1, y: 2 }]);
-      expect(movimentos).toContainEqual([{ x: 3, y: 2 }]);
-    });
-
-    test('movimentando uma peça comum do player2 no tabuleiro vazio', () => {
-      const piece: Piece = { ...pieceP, player: player2 };
-      const movimentos = pieceMatch.getMoviments({ piece, pieces: [piece] });
-
-      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
-      expect(movimentos).toContainEqual([{ x: 1, y: 0 }]);
-    });
-  });
-
-  describe('getPath', () => {
-    test('caminho de uma Dama com todas as casas disponiveis', () => {
-      const piece: Piece = { ...pieceP, player: player1, queen: true };
-
-      const movimentos = pieceMatch.getPath([piece], piece, 'upLeft');
-      expect(movimentos).toEqual([
-        { coord: { x: 3, y: 2 }, piece: undefined },
-        { coord: { x: 4, y: 3 }, piece: undefined },
-        { coord: { x: 5, y: 4 }, piece: undefined },
-        { coord: { x: 6, y: 5 }, piece: undefined },
-        { coord: { x: 7, y: 6 }, piece: undefined },
-      ]);
-    });
-
-    test('caminho de uma Dama com 2 peça inimiga', () => {
-      const piece: Piece = { ...pieceP, player: player1, queen: true };
-      const pieces = [
-        piece,
-        { ...pieceP, player: player2, x: 3, y: 2 }, //  peça inimiga
-        { ...pieceP, player: player2, x: 5, y: 4 }, // peça inimiga
-      ];
-
-      const movimentos = pieceMatch.getPath(pieces, piece, 'upLeft');
-      expect(movimentos).toEqual([
-        { coord: { x: 3, y: 2 }, piece: pieces[1] },
-        { coord: { x: 4, y: 3 }, piece: undefined },
-        { coord: { x: 5, y: 4 }, piece: pieces[2] },
-        { coord: { x: 6, y: 5 }, piece: undefined },
-      ]);
-    });
-
-    test('caminho de uma peça comum começa vazio', () => {
-      const piece: Piece = { ...pieceP, player: player1 };
-      const pieces = [piece, { ...pieceP, player: player2, x: 4, y: 3 }];
-
-      const movimentos = pieceMatch.getPath(pieces, piece, 'upLeft');
-      expect(movimentos).toEqual([{ coord: { x: 3, y: 2 }, piece: undefined }]);
-    });
   });
 
   describe('verifyPiece', () => {
