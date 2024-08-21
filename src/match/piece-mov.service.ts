@@ -55,8 +55,8 @@ export class PieceMovService {
    */
   getTrail({ piece, pieces }: PieceVerify, c: Coord) {
     const direcao =
-      (piece.x - c.x < 1 ? 'down' : 'up') + // horizontal
-      (piece.y - c.y < 1 ? 'Right' : 'Left'); //vertical
+      (piece.y - c.y > 0 ? 'down' : 'up') + // horizontal
+      (piece.x - c.x > 0 ? 'Right' : 'Left'); //vertical
 
     const path = this.getPath(pieces, piece, direcao as DMap);
     // pega o index da casa que o jogador quer mover, se não existir, o movimento é inválido
@@ -64,7 +64,7 @@ export class PieceMovService {
     if (movI === -1) throw new BadRequestException('Movimento inválido');
 
     const piecesEnemys = path.slice(0, movI).filter((c) => c.piece);
-    const movs = path.slice(0, movI).filter((c) => !c.coord);
+    const movs = path.slice(0, movI + 1).filter((c) => !c.piece);
 
     return { piecesEnemys, movs };
   }
