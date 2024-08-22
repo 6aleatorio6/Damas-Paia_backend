@@ -45,7 +45,7 @@ export class MatchService {
    * transforma o MatchInfo em um MatchPaiado
    * O matchPaiado é mais leve para ser enviado em JSON
    */
-  transformMatchInfo({ match, pieces }: MatchInfo) {
+  transformMatchInfo({ match, pieces }: MatchInfo, userId: UUID) {
     const piecesP1: any = pieces
       .filter((p) => p.player.uuid === match.player1.uuid)
       .map((p) => ({ ...p, match: undefined, player: undefined }));
@@ -54,11 +54,18 @@ export class MatchService {
       .filter((p) => p.player.uuid === match.player2.uuid)
       .map((p) => ({ ...p, match: undefined, player: undefined }));
 
+    const isPlayer1 = match.player1.uuid === userId;
+    const getPlayerPaiado = (is: boolean) =>
+      is
+        ? { ...match.player1, pieces: piecesP1 }
+        : { ...match.player2, pieces: piecesP2 };
+
     return {
-      ...match,
+      matchUuid: match.uuid,
       turn: match.turn.uuid,
-      player1: { ...match.player1, pieces: piecesP1 } as PlayerPaiado,
-      player2: { ...match.player2, pieces: piecesP2 } as PlayerPaiado,
+      dateInit: match.dateInit,
+      myPlayer: getPlayerPaiado(isPlayer1),
+      playerOponent: getPlayerPaiado(!isPlayer1),
     } as MatchPaiado;
   }
 

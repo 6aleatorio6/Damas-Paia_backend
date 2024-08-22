@@ -32,15 +32,19 @@ export class MatchGateway {
     const sockets = await this.io.in('queue').fetchSockets();
 
     if (sockets.length >= 2) {
-      sockets.forEach((s) => s.leave('queue'));
+      const socketsP = sockets.slice(0, 2);
+      socketsP.forEach((s) => s.leave('queue'));
 
-      const uuids = sockets.map((s: any) => s.request.user.uuid);
+      const uuids = socketsP.map((s: any) => s.request.user.uuid);
       const matchInfo = await this.matchService.createMatch(uuids);
 
-      sockets.forEach((s) => {
+      socketsP.forEach((s, i) => {
         s.join(matchInfo.match.uuid);
         s.data.matchInfo = matchInfo;
-        s.emit('match:start', this.matchService.transformMatchInfo(matchInfo));
+        s.emit(
+          'match:start',
+          this.matchService.transformMatchInfo(matchInfo, uuids[i]),
+        );
         this.toogleTurn(matchInfo);
       });
     }

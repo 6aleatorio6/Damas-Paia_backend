@@ -33,9 +33,11 @@ interface ReturnMove {
 //
 // QueueService
 type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'> };
-type MatchPaiado = Match & {
-  player1: PlayerPaiado;
-  player2: PlayerPaiado;
+type MatchPaiado = {
+  myPlayer: PlayerPaiado;
+  playerOponent: PlayerPaiado;
+  matchUuid: UUID;
+  dateInit: Date;
   turn: UUID;
 };
 
