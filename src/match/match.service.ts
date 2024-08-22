@@ -4,7 +4,7 @@ import { DataSource, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { Match } from 'src/match/entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
-import { MatchInfo, MatchPaiado, PlayerPaiado } from './match';
+import { MatchInfo, MatchPaiado } from './match';
 import { PieceMatchService } from './piece-match.service';
 
 @Injectable()
@@ -76,11 +76,10 @@ export class MatchService {
         where: usersIds.map((id) => ({ uuid: id })),
       });
 
-      const match = manager.create(Match, {
-        player1: players[0],
-        player2: players[1],
-        turn: players[0],
-      });
+      const match = new Match();
+      match.player1 = players[0];
+      match.player2 = players[1];
+      match.turn = players[0];
 
       const pieces = this.pieceMatch.createPieces(match, players);
 
