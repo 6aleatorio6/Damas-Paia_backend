@@ -18,36 +18,37 @@ export class PieceMatchService {
   ) {}
 
   async movePiece({ piece, pieces }: PieceVerify, coord: Coord) {
+    // verifica se a peça pode se mover para a coordenada e pega a trilha do movimento
     const trail = this.pieceMov.getTrail({ piece, pieces }, coord);
-
     if (!trail.movs.length) throw new BadRequestException('Movimento inválido');
 
+    // pega os ids das peças mortas
+    const deadsIds = trail.pieceRival.map((d) => d.piece.id);
+    // monta o objeto de atualização da peça
     const isPlayer1 = piece.match.player1.uuid === piece.player.uuid;
     const updateData = {
       ...coord,
-      queen: isPlayer1 ? piece.y === 0 : piece.y === 7,
+      queen: isPlayer1 ? piece.y === 7 : piece.y === 0,
     };
 
-    const deads = trail.pieceRival.map((c) => c.piece.id);
-    const movs = trail.movs.map((c) => ({ id: piece.id, to: c.coord }));
+    // salva as alterações no banco
+    await this.pieceRepo.manager.transaction(async (manager) => {
+      await manager.update(Piece, piece.id, updateData);
+      if (deadsIds.length) await manager.delete(Piece, deadsIds);
+    });
+
+    // atualiza o objeto peça e remove as peças mortas
     this.pieceRepo.merge(piece, updateData);
-    for (let i = pieces.length; i > i; i--) {
-      if (deads.some((id) => pieces[i].id === id)) {
-        pieces.splice(i, 1);
-      }
+    for (const deadId of deadsIds) {
+      const deadIndex = pieces.findIndex((p) => p.id === deadId);
+      if (deadIndex === -1) throw new WsException('Peça morta não encontrada');
+      pieces.splice(deadIndex, 1);
     }
 
-    try {
-      await this.pieceRepo.manager.transaction(async (manager) => {
-        await manager.save(piece);
-        await manager.remove(trail.pieceRival.map((p) => p.piece));
-      });
-    } catch (error) {
-      console.error(error);
-      throw new WsException('Erro ao salvar movimento');
-    }
-
-    return { movs, deads } as UpdatePieces;
+    return {
+      movs: trail.movs.map((c) => ({ id: piece.id, to: c.coord })),
+      deads: deadsIds,
+    } as UpdatePieces;
   }
 
   /**
