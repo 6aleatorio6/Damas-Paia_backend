@@ -10,6 +10,7 @@ import { MatchInfo, ServerM, SocketM } from './match.d';
 import { MatchMoveDto } from './dto/move.match.dto';
 import { PieceMatchService } from './piece-match.service';
 import { MatchService } from './match.service';
+import { PieceMovService } from './piece-mov.service';
 
 @UseFilters(new WsExceptionsFilter())
 @WebSocketGateway({ cors: true })
@@ -18,6 +19,7 @@ export class MatchGateway {
 
   constructor(
     private readonly pieceMatch: PieceMatchService,
+    private readonly pieceMov: PieceMovService,
     private readonly matchService: MatchService,
   ) {}
 
@@ -64,13 +66,13 @@ export class MatchGateway {
     return 'PAIA';
   }
 
-  @SubscribeMessage('match:path')
+  @SubscribeMessage('match:paths')
   async getMove(socket: SocketM, pieceId: number) {
     const matchInfo = socket.data.matchInfo;
     const userId = socket.request.user.uuid;
     const pieceMove = this.pieceMatch.verifyPiece(matchInfo, pieceId, userId);
 
-    const res = this.pieceMatch.getMoviments(pieceMove);
+    const res = this.pieceMov.getMoviments(pieceMove);
 
     return res || null;
   }

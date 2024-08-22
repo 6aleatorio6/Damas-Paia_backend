@@ -40,7 +40,7 @@ export class PieceMovService {
       caminhos.push(caminho.map((c) => c.coord)); // pega só as coordenadas
     });
 
-    return caminhos;
+    return caminhos.flat();
   }
 
   /**

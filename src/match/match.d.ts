@@ -57,7 +57,7 @@ interface ServerToCl {
 interface ClientToSv {
   'match:queue': () => void;
   'match:move': (pieceId: number) => 'PAIA';
-  'match:path': (pieceId: number) => MatchPaiado;
+  'match:paths': (pieceId: number) => Coord[];
   'match:leave': () => Match;
 }
 
