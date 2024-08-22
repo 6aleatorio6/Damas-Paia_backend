@@ -4,6 +4,7 @@ import { Match } from './entities/match.entity';
 import { Piece } from './entities/piece.entity';
 import { UUID } from 'crypto';
 import { User } from 'src/user/entities/user.entity';
+import { MoveDto } from './dto/move.match.dto';
 
 // Match
 type MatchInfo = { match: Match; pieces: Piece[] };
@@ -24,9 +25,9 @@ interface PieceVerify {
   pieces: Piece[];
 }
 
-interface ReturnMove {
-  DEAD: number[];
-  UPDATE: Piece;
+interface UpdatePieces {
+  deads: number[];
+  movs: MoveDto[];
 }
 
 //
@@ -48,7 +49,7 @@ type MatchPaiado = {
 // EMIT
 interface ServerToCl {
   'match:start': (matchPaiado: MatchPaiado) => void;
-  'match:update': (matchInfo: ReturnMove) => void;
+  'match:update': (matchInfo: UpdatePieces) => void;
   'match:end': (matchPaiado: Match) => void;
   'match:turn': (turn: UUID) => void;
 }
@@ -56,7 +57,7 @@ interface ServerToCl {
 // ON
 interface ClientToSv {
   'match:queue': () => void;
-  'match:move': (pieceId: number) => 'PAIA';
+  'match:move': (moveDto: MoveDto) => void;
   'match:paths': (pieceId: number) => Coord[];
   'match:leave': () => Match;
 }

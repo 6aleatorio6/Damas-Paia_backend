@@ -1,12 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Piece } from './entities/piece.entity';
-import { Coord, MatchInfo, PieceVerify } from './match';
+import { Coord, MatchInfo, PieceVerify, UpdatePieces } from './match';
 import { UUID } from 'crypto';
 import { Match } from './entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PieceMovService } from './piece-mov.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class PieceMatchService {
@@ -16,37 +17,37 @@ export class PieceMatchService {
     private pieceRepo: Repository<Piece>,
   ) {}
 
-  async movePiece(pieceData: PieceVerify, coord: Coord) {
-    const trail = this.pieceMov.getTrail(pieceData, coord);
+  async movePiece({ piece, pieces }: PieceVerify, coord: Coord) {
+    const trail = this.pieceMov.getTrail({ piece, pieces }, coord);
 
     if (!trail.movs.length) throw new BadRequestException('Movimento inválido');
 
-    pieceData.piece.x = coord.x;
-    pieceData.piece.y = coord.y;
-    this.checkAndSetQueen(pieceData.piece);
-
-    pieceData.pieces.forEach((p, i) => {
-      const isRemoved = trail.pieceRival.some((pAd) => pAd.piece.id === p.id);
-      if (isRemoved) pieceData.pieces.splice(i, 1);
-    });
-
-    // todo: criar salvaguarda para caso de erro
-    await this.pieceRepo.manager.transaction(async (manager) => {
-      await manager.save(pieceData.piece);
-      await manager.remove(trail.pieceRival.map((p) => p.piece));
-    });
-
-    return {
-      movs: trail.movs.map((c) => c.coord),
-      deads: trail.pieceRival.map((c) => c.piece.id),
-    };
-  }
-
-  private checkAndSetQueen(piece: Piece) {
-    if (piece.queen) return;
-
     const isPlayer1 = piece.match.player1.uuid === piece.player.uuid;
-    piece.queen = isPlayer1 ? piece.y === 0 : piece.y === 7;
+    const updateData = {
+      ...coord,
+      queen: isPlayer1 ? piece.y === 0 : piece.y === 7,
+    };
+
+    const deads = trail.pieceRival.map((c) => c.piece.id);
+    const movs = trail.movs.map((c) => ({ id: piece.id, to: c.coord }));
+    this.pieceRepo.merge(piece, updateData);
+    for (let i = pieces.length; i > i; i--) {
+      if (deads.some((id) => pieces[i].id === id)) {
+        pieces.splice(i, 1);
+      }
+    }
+
+    try {
+      await this.pieceRepo.manager.transaction(async (manager) => {
+        await manager.save(piece);
+        await manager.remove(trail.pieceRival.map((p) => p.piece));
+      });
+    } catch (error) {
+      console.error(error);
+      throw new WsException('Erro ao salvar movimento');
+    }
+
+    return { movs, deads } as UpdatePieces;
   }
 
   /**

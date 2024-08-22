@@ -4,12 +4,12 @@ import {
   WebSocketServer,
   ConnectedSocket,
 } from '@nestjs/websockets';
-import { UseFilters } from '@nestjs/common';
+import { UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
 import { MatchInfo, ServerM, SocketM } from './match.d';
-import { MatchMoveDto } from './dto/move.match.dto';
 import { PieceMatchService } from './piece-match.service';
 import { MatchService } from './match.service';
+import { MoveDto } from './dto/move.match.dto';
 import { PieceMovService } from './piece-mov.service';
 
 @UseFilters(new WsExceptionsFilter())
@@ -53,17 +53,15 @@ export class MatchGateway {
   }
 
   @SubscribeMessage('match:move')
-  async move(socket: SocketM, moveDto: MatchMoveDto) {
+  async move(socket: SocketM, moveDto: MoveDto) {
     const matchInfo = socket.data.matchInfo;
     const userId = socket.request.user.uuid;
     const pMove = this.pieceMatch.verifyPiece(matchInfo, moveDto.id, userId);
 
-    const res = await this.pieceMatch.move(moveDto.to, pMove);
+    const res = await this.pieceMatch.movePiece(pMove, moveDto.to);
     this.toogleTurn(matchInfo);
 
     this.io.to(matchInfo.match.uuid).emit('match:update', res);
-
-    return 'PAIA';
   }
 
   @SubscribeMessage('match:paths')
