@@ -16,7 +16,6 @@ import { MatchInfo, ServerM, SocketM } from './match.d';
 import { PieceMatchService } from './piece-match.service';
 import { MatchService } from './match.service';
 import { MoveDto } from './dto/move.match.dto';
-import { PieceMovService } from './piece-mov.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
@@ -26,7 +25,6 @@ export class MatchGateway {
 
   constructor(
     private readonly pieceMatch: PieceMatchService,
-    private readonly pieceMov: PieceMovService,
     private readonly matchService: MatchService,
   ) {}
 
@@ -80,7 +78,7 @@ export class MatchGateway {
     const userId = socket.request.user.uuid;
     const pieceMove = this.pieceMatch.verifyPiece(matchInfo, pieceId, userId);
 
-    const res = this.pieceMov.getMoviments(pieceMove);
+    const res = this.pieceMatch.getMoviments(pieceMove);
 
     return res || null;
   }

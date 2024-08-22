@@ -4,7 +4,7 @@ import { Coord, MatchInfo, PieceVerify, UpdatePieces } from './match';
 import { UUID } from 'crypto';
 import { Match } from './entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
-import { PieceMovService } from './piece-mov.service';
+import { DMap, PieceMovService } from './piece-mov.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WsException } from '@nestjs/websockets';
@@ -48,6 +48,28 @@ export class PieceMatchService {
     }
 
     return { movs, deads } as UpdatePieces;
+  }
+
+  /**
+   * retorna um array de coordenadas possíveis para a peça se mover
+   */
+  getMoviments({ piece, pieces }: PieceVerify) {
+    const caminhos: Coord[][] = [];
+
+    const mapMoviments = Object.keys(PieceMovService.dEnum) as DMap[];
+    // inverte a direção se for a vez do player2
+    if (piece.match.player2 == piece.player) mapMoviments.reverse();
+
+    mapMoviments.forEach((dir, i) => {
+      if (!piece.queen && i > 1) return;
+
+      let caminho = this.pieceMov.getPath(pieces, piece, dir);
+
+      caminho = caminho.filter((c) => !c.piece); // remove as casas com peças do caminho
+      caminhos.push(caminho.map((c) => c.coord)); // pega só as coordenadas
+    });
+
+    return caminhos.flat();
   }
 
   /**

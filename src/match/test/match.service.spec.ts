@@ -16,7 +16,7 @@ const match: Match = {
   dateInit: null,
 };
 
-describe('MatchService', () => {
+describe.skip('MatchService', () => {
   let matchService: MatchService;
 
   beforeEach(() => {

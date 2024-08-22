@@ -2,6 +2,8 @@ import { TestBed } from '@automock/jest';
 import { Match } from '../entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
 import { PieceMatchService } from '../piece-match.service';
+import { Piece } from '../entities/piece.entity';
+import { PieceMovService } from '../piece-mov.service';
 
 const userPaia = { email: 'leonar', password: '123', username: 'leonar' };
 
@@ -20,9 +22,12 @@ const pieceP = { id: 1, x: 2, y: 1, queen: false, match };
 
 describe('PieceMatchService', () => {
   let pieceMatch: PieceMatchService;
+  let pieceMov: jest.Mocked<PieceMovService>;
 
   beforeEach(() => {
-    pieceMatch = TestBed.create(PieceMatchService).compile().unit;
+    const { unit, unitRef } = TestBed.create(PieceMatchService).compile();
+    pieceMatch = unit;
+    pieceMov = unitRef.get(PieceMovService);
   });
 
   describe('verifyPiece', () => {
@@ -108,6 +113,49 @@ describe('PieceMatchService', () => {
       expect(pieces).toContainEqual({ match, player: player2, x: 2, y: 7 });
       expect(pieces).toContainEqual({ match, player: player2, x: 4, y: 7 });
       expect(pieces).toContainEqual({ match, player: player2, x: 6, y: 7 });
+    });
+  });
+
+  describe('getMoviments', () => {
+    test('deve retornar os movimentos possíveis de uma peça comum do player1', () => {
+      pieceMov.getPath.mockReturnValue([{ coord: { x: 1, y: 2 } }]);
+
+      const piece: Piece = { ...pieceP, player: player1 };
+      const pieces = [piece];
+
+      const movimentos = pieceMatch.getMoviments({ pieces, piece });
+      expect(movimentos).toContainEqual({ x: 1, y: 2 });
+
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'upRight');
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'upLeft');
+    });
+
+    test('deve retornar os movimentos possíveis de uma peça comum do player2', () => {
+      pieceMov.getPath.mockReturnValue([{ coord: { x: 1, y: 0 } }]);
+
+      const piece: Piece = { ...pieceP, player: player2 };
+      const pieces = [piece];
+
+      const movimentos = pieceMatch.getMoviments({ pieces, piece });
+      expect(movimentos).toContainEqual({ x: 1, y: 0 });
+
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'downRight');
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'downLeft');
+    });
+
+    test('deve retornar os movimentos possíveis de uma Dama do player1', () => {
+      pieceMov.getPath.mockReturnValue([{ coord: { x: 3, y: 2 } }]);
+
+      const piece: Piece = { ...pieceP, player: player1, queen: true };
+      const pieces = [piece];
+
+      const movimentos = pieceMatch.getMoviments({ pieces, piece });
+      expect(movimentos).toContainEqual({ x: 3, y: 2 });
+
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'upRight');
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'upLeft');
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'downRight');
+      expect(pieceMov.getPath).toHaveBeenCalledWith(pieces, piece, 'downLeft');
     });
   });
 });

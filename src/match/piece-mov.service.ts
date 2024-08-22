@@ -22,28 +22,6 @@ export class PieceMovService {
   } as const;
 
   /**
-   * retorna um array de coordenadas possíveis para a peça se mover
-   */
-  getMoviments({ piece, pieces }: PieceVerify) {
-    const caminhos: Coord[][] = [];
-
-    const mapMoviments = Object.keys(PieceMovService.dEnum) as DMap[];
-    // inverte a direção se for a vez do player2
-    if (piece.match.player2 == piece.player) mapMoviments.reverse();
-
-    mapMoviments.forEach((dir, i) => {
-      if (!piece.queen && i > 1) return;
-
-      let caminho = this.getPath(pieces, piece, dir);
-
-      caminho = caminho.filter((c) => !c.piece); // remove as casas com peças do caminho
-      caminhos.push(caminho.map((c) => c.coord)); // pega só as coordenadas
-    });
-
-    return caminhos.flat();
-  }
-
-  /**
    * O `getTrail` recebe a peça e as peças do tabuleiro e a coordenada que o jogador quer mover e
    * retorna um objeto com as peças que a peça comeu e as casas que a peça passou.
    *

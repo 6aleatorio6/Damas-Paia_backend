@@ -60,46 +60,6 @@ describe('PiecePService', () => {
     });
   });
 
-  describe('getMoviments', () => {
-    test('deve retornar os movimentos possíveis de uma peça comum do player1', () => {
-      const piece: Piece = { ...pieceP, player: player1 };
-      const pieces = [piece];
-
-      const movimentos = pieceMov.getMoviments({ pieces, piece });
-      expect(movimentos).toContainEqual([{ x: 1, y: 2 }]);
-      expect(movimentos).toContainEqual([{ x: 3, y: 2 }]);
-    });
-
-    test('deve retornar os movimentos possíveis de uma peça comum do player2', () => {
-      const piece: Piece = { ...pieceP, player: player2 };
-      const pieces = [piece];
-
-      const movimentos = pieceMov.getMoviments({ pieces, piece });
-      expect(movimentos).toContainEqual([{ x: 1, y: 0 }]);
-      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
-    });
-
-    test('deve retornar os movimentos possíveis de uma Dama do player1', () => {
-      const piece: Piece = { ...pieceP, player: player1, queen: true };
-      const pieces = [piece];
-
-      const movimentos = pieceMov.getMoviments({ pieces, piece });
-      expect(movimentos).toContainEqual([{ x: 1, y: 0 }]);
-      expect(movimentos).toContainEqual([{ x: 3, y: 0 }]);
-      expect(movimentos).toContainEqual([
-        { x: 1, y: 2 },
-        { x: 0, y: 3 },
-      ]);
-      expect(movimentos).toContainEqual([
-        { x: 3, y: 2 },
-        { x: 4, y: 3 },
-        { x: 5, y: 4 },
-        { x: 6, y: 5 },
-        { x: 7, y: 6 },
-      ]);
-    });
-  });
-
   describe('getPath', () => {
     test('caminho de uma Dama com todas as casas disponiveis', () => {
       const piece: Piece = { ...pieceP, player: player1, queen: true };
