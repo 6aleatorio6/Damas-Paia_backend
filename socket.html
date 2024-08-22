@@ -1,10 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tabuleiro de Damas</title>
     <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+      }
+
       #board {
         display: grid;
         grid-template-columns: repeat(8, 50px);
@@ -14,6 +24,7 @@
         height: 404px;
         background-color: black;
       }
+
       .square {
         width: 50px;
         height: 50px;
@@ -21,47 +32,130 @@
         align-items: center;
         justify-content: center;
       }
+
       .black {
         background-color: #444;
       }
+
       .white {
         background-color: #fff;
       }
+
       .piece {
         width: 40px;
         height: 40px;
         border-radius: 50%;
+        background-color: blue;
+      }
+
+      .piece.player2 {
         background-color: red;
       }
-      .piece.player2 {
-        background-color: blue;
+
+      /* Improved contrast */
+      .black {
+        color: white;
+      }
+
+      .white {
+        color: black;
+      }
+
+      #playerInfo {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        width: 400px;
+      }
+
+      #player1Info,
+      #player2Info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        background-color: #ddd;
+        border-radius: 5px;
+      }
+
+      #player1Name,
+      #player2Name {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      #player1Turn,
+      #player2Turn {
+        font-size: 14px;
+        color: gray;
+      }
+
+      #userForm {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+      }
+
+      #userForm label {
+        margin-bottom: 5px;
+      }
+
+      #userForm input {
+        margin-bottom: 10px;
+        padding: 5px;
+        width: 200px;
+      }
+
+      #userForm button {
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      #userForm button:hover {
+        background-color: #45a049;
       }
     </style>
   </head>
   <body>
+    <div id="playerInfo">
+      <div id="player1Info">
+        <span id="player1Name"></span>
+        <span id="player1Turn"></span>
+      </div>
+      <div id="player2Info">
+        <span id="player2Name"></span>
+        <span id="player2Turn"></span>
+      </div>
+    </div>
+
     <div id="board"></div>
 
     <form id="userForm">
       <label for="username">Username:</label>
-      <input type="text" id="username" name="username" required /><br /><br />
+      <input type="text" id="username" name="username" required /><br />
       <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required /><br /><br />
+      <input type="email" id="email" name="email" required /><br />
       <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        required
-      /><br /><br />
+      <input type="password" id="password" name="password" required /><br />
       <button type="submit">Create User</button>
     </form>
 
-    <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
+    <script
+      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+      integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+      crossorigin="anonymous"
+    ></script>
+
     <script>
       // Função para gerar um valor aleatório
       function generateRandomValue() {
-        const characters = "abcdefghijklmnopqrstuvwxyz0123456789";
-        let randomValue = "";
+        const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let randomValue = '';
         for (let i = 0; i < 8; i++) {
           const randomIndex = Math.floor(Math.random() * characters.length);
           randomValue += characters.charAt(randomIndex);
@@ -70,88 +164,200 @@
       }
 
       // Definindo valores aleatórios nos campos do formulário
-      document.getElementById("username").value = generateRandomValue();
-      document.getElementById("email").value =
-        generateRandomValue() + "@example.com";
-      document.getElementById("password").value = generateRandomValue();
-
-      function createBoard() {
-        const board = document.getElementById("board");
-        for (let y = 0; y < 8; y++) {
-          for (let x = 0; x < 8; x++) {
-            const square = document.createElement("div");
-            square.classList.add("square");
-            if ((x + y) % 2 === 0) {
-              square.classList.add("white");
-            } else {
-              square.classList.add("black");
-            }
-            square.setAttribute("data-x", x);
-            square.setAttribute("data-y", y);
-            board.appendChild(square);
-          }
-        }
-      }
-
-      function placePieces(pieces) {
-        pieces.forEach((piece, i) => {
-          const square = document.querySelector(
-            `.square[data-x='${piece.x}'][data-y='${piece.y}']`
-          );
-          if (square) {
-            const pieceElement = document.createElement("div");
-            pieceElement.classList.add("piece");
-            if (i >= 12) {
-              pieceElement.classList.add("player2");
-            }
-            square.appendChild(pieceElement);
-          }
-        });
-      }
-
-      createBoard();
+      document.getElementById('username').value = generateRandomValue();
+      document.getElementById('email').value =
+        generateRandomValue() + '@example.com';
+      document.getElementById('password').value = generateRandomValue();
 
       // Função para criar um usuário
       async function createUser(user) {
         try {
-          const response = await fetch("http://localhost:3000/user", {
-            method: "POST",
+          const response = await fetch('http://localhost:3000/user', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify(user),
           });
         } catch (error) {
-          console.error("Error creating user:", error);
+          console.error('Error creating user:', error);
         }
       }
 
       // Função para fazer login
       async function login(user) {
         try {
-          const response = await fetch("http://localhost:3000/auth/login", {
-            method: "POST",
+          const response = await fetch('http://localhost:3000/auth/login', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify(user),
           });
           const data = await response.json();
-          console.log("Login successful:", data);
+          console.log('Login successful:', data);
           return data.token;
         } catch (error) {
-          console.error("Error logging in:", error);
+          console.error('Error logging in:', error);
         }
+      }
+
+      //
+
+      function createBoard() {
+        const board = document.getElementById('board');
+        for (let y = 0; y < 8; y++) {
+          for (let x = 0; x < 8; x++) {
+            const square = document.createElement('div');
+            square.classList.add('square');
+            if ((x + y) % 2 === 0) {
+              square.classList.add('white');
+            } else {
+              square.classList.add('black');
+            }
+            square.setAttribute('data-x', x);
+            square.setAttribute('data-y', y);
+            board.appendChild(square);
+          }
+        }
+      }
+
+      function placePieces(pieces, opponentPieces = false) {
+        const board = document.getElementById('board');
+        if (!opponentPieces && [0, 1, 2].includes(pieces[0].y)) {
+          board.style.transform = 'rotate(180deg)';
+        }
+        pieces.forEach((piece, i) => {
+          const square = document.querySelector(
+            `.square[data-x='${piece.x}'][data-y='${piece.y}']`,
+          );
+          if (square) {
+            const pieceElement = document.createElement('div');
+            pieceElement.setAttribute('data-id', piece.id);
+            pieceElement.classList.add('piece');
+            if (opponentPieces) {
+              pieceElement.classList.add('player2');
+            }
+            square.appendChild(pieceElement);
+          }
+        });
+      }
+      function addPiecesEvents(socket) {
+        let selectedPiece = null;
+        document.querySelectorAll('.piece').forEach((pieceEl) => {
+          pieceEl.addEventListener('click', async (event) => {
+            const id = +event.target.getAttribute('data-id');
+            const res = await socket.emitWithAck('match:paths', id);
+
+            if (selectedPiece) {
+              selectedPiece.forEach(({ square, event }) => {
+                square.style.backgroundColor = '';
+                square.removeEventListener('click', event);
+              });
+            }
+
+            selectedPiece = [];
+            res.forEach((to) => {
+              const square = document.querySelector(
+                `.square[data-x='${to.x}'][data-y='${to.y}']`,
+              );
+              const event = () => {
+                socket.emit('match:move', { id, to });
+                selectedPiece.forEach(({ square, event }) => {
+                  square.style.backgroundColor = '';
+                  square.removeEventListener('click', event);
+                });
+              };
+              square.style.backgroundColor = 'green';
+              square.addEventListener('click', event);
+              selectedPiece.push({ square, event });
+            });
+          });
+        });
+      }
+
+      function connectToServer(token) {
+        const socket = io('http://localhost:3000', {
+          extraHeaders: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        socket.on('connect', () => {
+          console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+          console.log('Disconnected from server');
+        });
+
+        socket.emit('match:queue');
+
+        socket.on('error', (error) => {
+          console.error('Error:', error);
+        });
+
+        let match;
+        socket.on('match:start', (game) => {
+          console.log(game);
+          match = game;
+          placePieces(game.myPlayer.pieces);
+          placePieces(game.playerOponent.pieces, true);
+          addPiecesEvents(socket);
+
+          const player1Name = document.getElementById('player1Name');
+          const player2Name = document.getElementById('player2Name');
+          player1Name.textContent = game.myPlayer.username;
+          player1Name.style.color = 'blue';
+          player2Name.textContent = game.playerOponent.username;
+          player2Name.style.color = 'red';
+
+          if (match.myPlayer.uuid === match.turn.uuid) {
+            player1Turn.textContent = 'Sua vez';
+            player2Turn.textContent = '';
+          } else {
+            player1Turn.textContent = '';
+            player2Turn.textContent = 'vez do adversário';
+          }
+        });
+
+        socket.on('match:turn', (uuid) => {
+          if (match.myPlayer.uuid === uuid) {
+            player1Turn.textContent = 'Sua vez';
+            player2Turn.textContent = '';
+          } else {
+            player1Turn.textContent = '';
+            player2Turn.textContent = 'vez do adversário';
+          }
+        });
+
+        socket.on('match:update', (updateData) => {
+          document.querySelectorAll('.piece').forEach((piece) => {
+            id = +piece.getAttribute('data-id');
+            if (updateData.deads.includes(id)) {
+              piece.remove();
+            }
+
+            if (updateData.movs.some((mov) => mov.id === id)) {
+              updateData.movs.forEach(({ to }) => {
+                const square = document.querySelector(
+                  `.square[data-x='${to.x}'][data-y='${to.y}']`,
+                );
+                square.appendChild(piece);
+              });
+            }
+          });
+        });
       }
 
       // Chamando as funções quando necessário
       document
-        .getElementById("userForm")
-        .addEventListener("submit", async (event) => {
+        .getElementById('userForm')
+        .addEventListener('submit', async (event) => {
           event.preventDefault();
-          const username = document.getElementById("username").value;
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
+          const username = document.getElementById('username').value;
+          const email = document.getElementById('email').value;
+          const password = document.getElementById('password').value;
           const user = { username, email, password };
           const createdUser = await createUser(user);
           const token = await login(user);
@@ -160,28 +366,7 @@
           }
         });
 
-      function connectToServer(token) {
-        const socket = io("http://localhost:3000", {
-          extraHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        socket.on("connect", () => {
-          console.log("Connected to server");
-        });
-
-        socket.on("disconnect", () => {
-          console.log("Disconnected from server");
-        });
-
-        socket.emit("match:queue");
-
-        socket.on("match", (game) => {
-          console.log("Game:", game);
-          placePieces(game);
-        });
-      }
+      createBoard();
     </script>
   </body>
 </html>
