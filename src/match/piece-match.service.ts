@@ -23,32 +23,41 @@ export class PieceMatchService {
     if (!trail.movs.length) throw new BadRequestException('Movimento inválido');
 
     // pega os ids das peças mortas
-    const deadsIds = trail.pieceRival.map((d) => d.piece.id);
     // monta o objeto de atualização da peça
     const isPlayer1 = piece.match.player1.uuid === piece.player.uuid;
-    const updateData = {
-      ...coord,
-      queen: isPlayer1 ? piece.y === 7 : piece.y === 0,
-    };
+    const ascend = isPlayer1 ? coord.y === 7 : coord.y === 0;
+    const updateData = { ...coord, queen: piece.queen || ascend };
 
+    const deadsIds = trail.pieceRival.map((d) => d.piece.id);
+    await this.updatePieces({ piece, pieces }, updateData, deadsIds);
+
+    return {
+      deads: deadsIds,
+      piece: {
+        id: piece.id,
+        queen: updateData.queen,
+        movs: trail.movs.map((c) => c.coord),
+      },
+    } as UpdatePieces;
+  }
+
+  async updatePieces(
+    pData: PieceVerify,
+    pieceAtt: Partial<Piece>,
+    deadsIds: number[],
+  ) {
     // salva as alterações no banco
     await this.pieceRepo.manager.transaction(async (manager) => {
-      await manager.update(Piece, piece.id, updateData);
+      await manager.update(Piece, pData.piece, pieceAtt);
       if (deadsIds.length) await manager.delete(Piece, deadsIds);
     });
 
-    // atualiza o objeto peça e remove as peças mortas
-    this.pieceRepo.merge(piece, updateData);
+    this.pieceRepo.merge(pData.piece, pieceAtt);
     for (const deadId of deadsIds) {
-      const deadIndex = pieces.findIndex((p) => p.id === deadId);
+      const deadIndex = pData.pieces.findIndex((p) => p.id === deadId);
       if (deadIndex === -1) throw new WsException('Peça morta não encontrada');
-      pieces.splice(deadIndex, 1);
+      pData.pieces.splice(deadIndex, 1);
     }
-
-    return {
-      movs: trail.movs.map((c) => ({ id: piece.id, to: c.coord })),
-      deads: deadsIds,
-    } as UpdatePieces;
   }
 
   /**
