@@ -27,13 +27,17 @@ interface PieceVerify {
 
 interface UpdatePieces {
   deads: number[];
-  movs: MoveDto[];
+  piece: {
+    id: number;
+    queen: boolean;
+    movs: Coord[];
+  };
 }
 
 //
 //
 // QueueService
-type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'> };
+type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'>[] };
 type MatchPaiado = {
   myPlayer: PlayerPaiado;
   playerOponent: PlayerPaiado;
@@ -49,9 +53,8 @@ type MatchPaiado = {
 // EMIT
 interface ServerToCl {
   'match:start': (matchPaiado: MatchPaiado) => void;
-  'match:update': (matchInfo: UpdatePieces) => void;
   'match:end': (matchPaiado: Match) => void;
-  'match:turn': (turn: UUID) => void;
+  'match:update': (updatePieces: UpdatePieces, turn: UUID) => void;
 }
 
 // ON
