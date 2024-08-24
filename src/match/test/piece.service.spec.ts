@@ -4,6 +4,8 @@ import { User } from 'src/user/entities/user.entity';
 import { PieceMatchService } from '../piece-match.service';
 import { Piece } from '../entities/piece.entity';
 import { PieceMovService } from '../piece-mov.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 const userPaia = { email: 'leonar', password: '123', username: 'leonar' };
 
@@ -23,11 +25,85 @@ const pieceP = { id: 1, x: 2, y: 1, queen: false, match };
 describe('PieceMatchService', () => {
   let pieceMatch: PieceMatchService;
   let pieceMov: jest.Mocked<PieceMovService>;
+  let pieceRepo: jest.Mocked<Repository<Piece>> & {
+    manager: jest.Mocked<EntityManager>;
+  };
 
   beforeEach(() => {
     const { unit, unitRef } = TestBed.create(PieceMatchService).compile();
     pieceMatch = unit;
     pieceMov = unitRef.get(PieceMovService);
+    pieceRepo = unitRef.get(getRepositoryToken(Piece).toString());
+
+    (pieceRepo as any).manager = { transaction: jest.fn() };
+  });
+
+  describe('movePiece', () => {
+    it('o retorno deve estar correto', async () => {
+      const piece = { ...pieceP, player: player1, id: 1 };
+      const coord = { x: 4, y: 3 };
+      const pieceEnemys = { ...pieceP, id: 2, player: player2, x: 3, y: 2 };
+      const pieces = [piece, pieceEnemys];
+
+      pieceMov.getTrail.mockReturnValue({
+        movs: [{ coord }],
+        pieceRival: [{ piece: pieceEnemys, coord: { x: 3, y: 2 } }],
+      });
+
+      const result = await pieceMatch.movePiece({ piece, pieces }, coord);
+      expect(result.deads).toEqual([pieceEnemys.id]);
+      expect(result.piece).toEqual({
+        id: piece.id,
+        queen: false,
+        movs: [coord],
+      });
+    });
+
+    it('deve lançar uma exceção se o movimento for inválido', () => {
+      const piece = { ...pieceP, player: player1, id: 1 };
+      const pieces = [piece];
+      const coord = { x: 3, y: 2 };
+
+      pieceMov.getTrail.mockReturnValue({ movs: [], pieceRival: [] });
+
+      const res = pieceMatch.movePiece({ piece, pieces }, coord);
+      return expect(res).rejects.toThrow('Movimento inválido');
+    });
+  });
+
+  describe('updatePieces', () => {
+    it('deve atualizar a peça que foi movida e retirar as mortas do obj pieces e do db ', async () => {
+      const piece = { ...pieceP, player: player1, id: 1 };
+      const pieceEnemys = { ...pieceP, id: 2, player: player2, x: 3, y: 2 };
+      const pieces = [piece, pieceEnemys];
+      const pieceAtt = { x: 3, y: 2, queen: true };
+      const deadsIds = [2];
+
+      pieceRepo.manager.transaction.mockImplementation(async (cb: any) =>
+        cb(pieceRepo),
+      );
+
+      await pieceMatch.updatePieces({ piece, pieces }, pieceAtt, deadsIds);
+      expect(pieceRepo.manager.transaction).toHaveBeenCalled();
+      expect(pieceRepo.update).toHaveBeenCalledWith(Piece, piece, pieceAtt);
+      expect(pieceRepo.delete).toHaveBeenCalledWith(Piece, deadsIds);
+      expect(pieceRepo.merge).toHaveBeenCalledWith(piece, pieceAtt);
+      expect(pieces).not.toContainEqual(pieceEnemys);
+    });
+
+    it('deve lançar uma exceção se a peça morta não for encontrada', () => {
+      const piece = { ...pieceP, player: player1, id: 1 };
+      const pieces = [piece];
+      const pieceAtt = { x: 3, y: 2, queen: true };
+      const deadsIds = [2];
+
+      const res = pieceMatch.updatePieces(
+        { piece, pieces },
+        pieceAtt,
+        deadsIds,
+      );
+      return expect(res).rejects.toThrow('Peça morta não encontrada');
+    });
   });
 
   describe('verifyPiece', () => {

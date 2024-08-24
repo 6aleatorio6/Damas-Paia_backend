@@ -16,7 +16,7 @@ const match: Match = {
   dateInit: null,
 };
 
-describe.skip('MatchService', () => {
+describe('MatchService', () => {
   let matchService: MatchService;
 
   beforeEach(() => {
@@ -33,17 +33,20 @@ describe.skip('MatchService', () => {
     };
 
     it('deve transformar o MatchInfo em um MatchPaiado corretamente', () => {
-      const matchPaiado = matchService.transformMatchInfo(matchInfo);
+      const matchPaiado = matchService.transformMatchInfo(
+        matchInfo,
+        player1.uuid,
+      );
 
-      expect(matchPaiado.player1.uuid).toBe(player1.uuid);
-      expect(matchPaiado.player2.uuid).toBe(player2.uuid);
+      expect(matchPaiado.myPlayer.uuid).toBe(player1.uuid);
+      expect(matchPaiado.playerOponent.uuid).toBe(player2.uuid);
       expect(matchPaiado.turn).toBe(player1.uuid);
 
       const piecesP1 = { id: 1, x: 2, y: 1, queen: false };
-      expect(matchPaiado.player1.pieces[0]).toEqual(piecesP1);
+      expect(matchPaiado.myPlayer.pieces[0]).toEqual(piecesP1);
 
       const piecesP2 = { id: 2, x: 2, y: 1, queen: false };
-      expect(matchPaiado.player2.pieces[0]).toEqual(piecesP2);
+      expect(matchPaiado.playerOponent.pieces[0]).toEqual(piecesP2);
     });
   });
 });
