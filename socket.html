@@ -312,7 +312,7 @@
           player2Name.textContent = game.playerOponent.username;
           player2Name.style.color = 'red';
 
-          if (match.myPlayer.uuid === match.turn.uuid) {
+          if (match.myPlayer.uuid === match.turn) {
             player1Turn.textContent = 'Sua vez';
             player2Turn.textContent = '';
           } else {
@@ -321,7 +321,28 @@
           }
         });
 
-        socket.on('match:turn', (uuid) => {
+        socket.on('match:update', (updatePieces, uuid) => {
+          document.querySelectorAll('.piece').forEach((piece) => {
+            id = +piece.getAttribute('data-id');
+            if (updatePieces.deads.includes(id)) {
+              piece.remove();
+            }
+
+            if (updatePieces.piece.id !== id) return;
+
+            updatePieces.piece.movs.forEach((to) => {
+              const square = document.querySelector(
+                `.square[data-x='${to.x}'][data-y='${to.y}']`,
+              );
+              square.appendChild(piece);
+            });
+
+            console.log(updatePieces.piece);
+
+            if (updatePieces.piece.queen)
+              piece.style.backgroundColor = 'yellow';
+          });
+
           if (match.myPlayer.uuid === uuid) {
             player1Turn.textContent = 'Sua vez';
             player2Turn.textContent = '';
@@ -329,24 +350,6 @@
             player1Turn.textContent = '';
             player2Turn.textContent = 'vez do adversário';
           }
-        });
-
-        socket.on('match:update', (updateData) => {
-          document.querySelectorAll('.piece').forEach((piece) => {
-            id = +piece.getAttribute('data-id');
-            if (updateData.deads.includes(id)) {
-              piece.remove();
-            }
-
-            if (updateData.movs.some((mov) => mov.id === id)) {
-              updateData.movs.forEach(({ to }) => {
-                const square = document.querySelector(
-                  `.square[data-x='${to.x}'][data-y='${to.y}']`,
-                );
-                square.appendChild(piece);
-              });
-            }
-          });
         });
       }
 
