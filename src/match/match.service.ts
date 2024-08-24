@@ -25,20 +25,11 @@ export class MatchService {
     return this.matchRepository.save(match);
   }
 
-  private mapTurn = new Map<UUID, () => void>();
-  timeoutToogleTurn(match: Match, cb: () => void) {
-    this.mapTurn.delete(match.uuid);
-    const timeoutId = setTimeout(() => {
-      const isPlayer1 = match.player1.uuid === match.turn.uuid;
-      match.turn = isPlayer1 ? match.player2 : match.player1;
+  toogleTurn(match: Match) {
+    match.turn =
+      match.turn.uuid === match.player1.uuid ? match.player2 : match.player1;
 
-      cb();
-
-      this.mapTurn.delete(match.uuid);
-      return this.matchRepository.save(match);
-    }, 3000);
-
-    this.mapTurn.set(match.uuid, () => clearTimeout(timeoutId));
+    return this.matchRepository.save(match);
   }
 
   /**
