@@ -19,16 +19,19 @@ Este é o repositório do backend do DamasPaia, um jogo de damas online desenvol
 
 ### Funcionalidades do Backend
 
-- [x] Cadastro de usuário
-- [x] Autenticação via username e password com retorno de token JWT
-- [x] Manipulação de usuário (obter, editar, excluir) através de rotas protegidas por token
-- [x] Revalidação de token expirado
-- [x] Implementação de conexões WebSocket protegidas por tokens
-- [x] Fila de pareamento de jogadores para criação de partida
-- [ ] Lógica de movimentação das peças no tabuleiro
-- [ ] Lógica de finalização de partidas
-- [ ] Autenticação OAuth2 (Google, Discord, GitHub)
-- [ ] Outras funcionalidades planejadas
+- [x] **Cadastro de Usuário:** Permite o registro de novos usuários no sistema.
+- [x] **Autenticação de Usuário:** Realiza autenticação via username e senha, fornecendo um token JWT.
+- [x] **Manipulação de Usuário:** Rotas protegidas por token para obter, editar e excluir usuários.
+- [x] **Revalidação de Token:** Garante a revalidação de tokens expirados.
+- [x] **Conexões WebSocket Protegidas:** Implementa conexões WebSocket seguras com tokens.
+- [x] **Fila de Pareamento:** Gerencia a fila de jogadores para criação de partidas.
+- [x] **Exibição de Caminhos Disponíveis:** Mostra os caminhos disponíveis para as peças no tabuleiro.
+- [x] **Movimentação das Peças:** Permite a movimentação das peças no tabuleiro.
+- [x] **Validação dos Movimentos:** Valida os movimentos das peças de acordo com as regras do jogo.
+- [x] **Gerenciamento de Turnos:** Controle dos turnos dos jogadores durante a partida.
+- [ ] **Lógica de Finalização de Partidas:** Implementará a lógica para determinar e gerenciar o término de uma partida.
+- [ ] **Autenticação OAuth2:** Planejada integração com Google, Discord e GitHub.
+- [ ] **Outras Funcionalidades Planejadas:** Outras funcionalidades ainda estão em desenvolvimento.
 
 ## Instalação
 
@@ -80,6 +83,33 @@ Para executar os testes da aplicação, utilize os comandos abaixo:
   npm run compose test:e2e -- --watch <pattern>
   npm run compose test -- --watch <pattern>
   ```
+
+### Teste do Jogo com `demo.html`
+
+Na raiz deste repositório, você encontrará um arquivo HTML que pode ser usado para testar o jogo de damas. Este arquivo configura um tabuleiro de damas interativo e permite a criação de usuários e a conexão ao servidor WebSocket para interações em tempo real.
+
+##### Para simular uma partida:
+
+1. **Abra o Arquivo**:
+
+   Use duas abas ou janelas diferentes do navegador para abrir `demo.html`.
+
+2. **Crie e Conecte Usuários**:
+   O formulário é preenchido automaticamente com valores aleatórios. Clique em **Criar Usuario** em ambas as abas para conectar dois jogadores.
+
+3. **Inicie a Partida**:
+   A partida começará automaticamente após ambos os jogadores se conectarem.
+
+#### Funcionalidades do HTML
+
+- **Tabuleiro de Damas**: Exibe um tabuleiro 8x8 com peças.
+- **Criação de Usuário**: Permite criar um novo usuário e conectar ao servidor.
+- **Pareamento Automático**: Coloca os jogadores na fila e inicia a partida quando ambos estão conectados.
+- **Simulação de Partida**: Abra duas abas para simular uma partida completa.
+
+![demonstração do html](demo.gif)
+
+**Nota**: O backend deve estar em execução em `localhost:3000`.
 
 ## Criador
 
