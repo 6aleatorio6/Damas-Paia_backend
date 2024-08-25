@@ -17,10 +17,10 @@ Este é o repositório do backend do DamasPaia, um jogo de damas online desenvol
 | Web                                                          | React        | Não iniciado |
 | Desktop                                                      | Não definido | Não iniciado |
 
-### Funcionalidades do Backend
+## Funcionalidades do Backend
 
 - [x] **Cadastro de Usuário:** Permite o registro de novos usuários no sistema.
-- [x] **Autenticação de Usuário:** Realiza autenticação via username e senha, fornecendo um token JWT.
+- [x] **Autenticação de Usuário:** Realiza autenticação via nome e senha, fornecendo um token JWT.
 - [x] **Manipulação de Usuário:** Rotas protegidas por token para obter, editar e excluir usuários.
 - [x] **Revalidação de Token:** Garante a revalidação de tokens expirados.
 - [x] **Conexões WebSocket Protegidas:** Implementa conexões WebSocket seguras com tokens.
@@ -61,7 +61,7 @@ Para iniciar a aplicação com Docker Compose, utilize o seguinte comando:
  npm run compose:dev
 ```
 
-### Testes
+## Testes
 
 Para executar os testes da aplicação, utilize os comandos abaixo:
 
@@ -84,14 +84,20 @@ Para executar os testes da aplicação, utilize os comandos abaixo:
   npm run compose test -- --watch <pattern>
   ```
 
-### Teste do Jogo com `demo.html`
+## Teste o Jogo de Damas com `demo.html`
 
-Na raiz deste repositório, você encontrará um arquivo HTML que pode ser usado para testar o jogo de damas. Este arquivo configura um tabuleiro de damas interativo e permite a criação de usuários e a conexão ao servidor WebSocket para interações em tempo real.
+ O `demo.html` serve como um frontend simples para testar o jogo de damas. Conseguindo testar as seguintes partes:
+ 
+- **Criação de Usuário**: Permite criar um novo usuário e conectar ao servidor.
+- **Pareamento**: Coloca o usuario criado na fila de pareamento.
+- **Simulação de Partida**: Abra duas abas para simular uma partida completa.
 
-##### Para simular uma partida:
+![demonstração do html](demo.gif)
+
+### Para simular uma partida:
+ O backend deve estar em execução em `localhost:3000`.
 
 1. **Abra o Arquivo**:
-
    Use duas abas ou janelas diferentes do navegador para abrir `demo.html`.
 
 2. **Crie e Conecte Usuários**:
@@ -100,16 +106,8 @@ Na raiz deste repositório, você encontrará um arquivo HTML que pode ser usado
 3. **Inicie a Partida**:
    A partida começará automaticamente após ambos os jogadores se conectarem.
 
-#### Funcionalidades do HTML
 
-- **Tabuleiro de Damas**: Exibe um tabuleiro 8x8 com peças.
-- **Criação de Usuário**: Permite criar um novo usuário e conectar ao servidor.
-- **Pareamento Automático**: Coloca os jogadores na fila e inicia a partida quando ambos estão conectados.
-- **Simulação de Partida**: Abra duas abas para simular uma partida completa.
 
-![demonstração do html](demo.gif)
-
-**Nota**: O backend deve estar em execução em `localhost:3000`.
 
 ## Criador
 
