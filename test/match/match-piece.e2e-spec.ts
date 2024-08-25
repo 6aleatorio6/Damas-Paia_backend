@@ -73,7 +73,10 @@ describe('match-piece (Ws)', () => {
 
       expect(res).toMatchObject({
         deads: [],
-        movs: [{ id: piece.id, to: { x: 0, y: 3 } }],
+        piece: {
+          id: piece.id,
+          movs: [{ x: 0, y: 3 }],
+        },
       });
     });
 
@@ -87,7 +90,10 @@ describe('match-piece (Ws)', () => {
 
       expect(res).toMatchObject({
         deads: [],
-        movs: [{ id: piece.id, to: { x: 2, y: 3 } }],
+        piece: {
+          id: piece.id,
+          movs: [{ x: 2, y: 3 }],
+        },
       });
     });
 
