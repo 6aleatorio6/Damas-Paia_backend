@@ -5,8 +5,8 @@ async function createMatch() {
   const client1 = await createClient();
   const client2 = await createClient();
 
-  client1.emit('match:queue');
-  client2.emit('match:queue');
+  client1.emit('match:queue', 'join');
+  client2.emit('match:queue', 'join');
 
   const [matC1, matC2] = (await Promise.all([
     client1.onPaia('match:start'),
