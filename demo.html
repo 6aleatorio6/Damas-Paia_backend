@@ -291,7 +291,7 @@
           console.log('Disconnected from server');
         });
 
-        socket.emit('match:queue');
+        socket.emit('match:queue', 'join');
 
         socket.on('error', (error) => {
           console.error('Error:', error);
