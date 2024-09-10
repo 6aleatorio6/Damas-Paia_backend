@@ -6,6 +6,7 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import {
+  ParseEnumPipe,
   ParseIntPipe,
   UseFilters,
   UsePipes,
@@ -29,7 +30,12 @@ export class MatchGateway {
   ) {}
 
   @SubscribeMessage('match:queue')
-  async matching(@ConnectedSocket() socket: SocketM) {
+  async matching(
+    @ConnectedSocket() socket: SocketM,
+    @MessageBody(new ParseEnumPipe(['join', 'leave'])) action: 'join' | 'leave',
+  ) {
+    if (action === 'leave') return socket.leave('queue');
+    //
     await socket.join('queue');
     const sockets = await this.io.in('queue').fetchSockets();
 
