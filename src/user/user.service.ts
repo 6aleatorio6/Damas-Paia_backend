@@ -76,7 +76,7 @@ export class UserService {
   /**
    *  Se eu precisar fazer isso em mais algum lugar aproveito e faço um filtro de execeção global para os erros do typeOrm
    */
-  private async checkIfNameOrEmailExists({ username, email }: any) {
+  async checkIfNameOrEmailExists({ username, email }: any) {
     if (!username && !email) return;
     const userExist = await this.usersRepository.findOne({
       where: [{ username }, { email }],

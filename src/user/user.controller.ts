@@ -7,6 +7,7 @@ import {
   Put,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,6 +18,13 @@ import { IToken, Public, ReqUser } from 'src/auth/custom.decorator';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Public()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Get('verify')
+  async verify(@Query('username') username, @Query('email') email) {
+    return await this.userService.checkIfNameOrEmailExists({ username, email });
+  }
 
   @Get('')
   async findOneByToken(@ReqUser() ReqUser: IToken) {
