@@ -277,7 +277,7 @@
       }
 
       function connectToServer(token) {
-        const socket = io('http://localhost:3000', {
+        const socket = io('http://localhost:3000/match', {
           extraHeaders: {
             Authorization: `Bearer ${token}`,
           },

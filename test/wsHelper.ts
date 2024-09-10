@@ -9,7 +9,7 @@ const clients: Socket[] = [];
 export async function createClient(tokenSus: string | null = 'PAIA') {
   const token = await getToken();
 
-  const client = io(`http://localhost:${port}`, {
+  const client = io(`http://localhost:${port}/match`, {
     extraHeaders: tokenSus && {
       Authorization: tokenSus === 'PAIA' ? `Bearer ${token}` : tokenSus,
     },

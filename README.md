@@ -86,8 +86,8 @@ Para executar os testes da aplicação, utilize os comandos abaixo:
 
 ## Teste o Jogo de Damas com `demo.html`
 
- O `demo.html` serve como um frontend simples para testar o jogo de damas. Conseguindo testar as seguintes partes:
- 
+O `demo.html` serve como um frontend simples para testar o jogo de damas. Conseguindo testar as seguintes partes:
+
 - **Criação de Usuário**: Permite criar um novo usuário e conectar ao servidor.
 - **Pareamento**: Coloca o usuario criado na fila de pareamento.
 - **Simulação de Partida**: Abra duas abas para simular uma partida completa.
@@ -95,7 +95,8 @@ Para executar os testes da aplicação, utilize os comandos abaixo:
 ![demonstração do html](demo.gif)
 
 ### Para simular uma partida:
- O backend deve estar em execução em `localhost:3000`.
+
+O backend deve estar em execução em `localhost:3000`.
 
 1. **Abra o Arquivo**:
    Use duas abas ou janelas diferentes do navegador para abrir `demo.html`.
@@ -105,9 +106,6 @@ Para executar os testes da aplicação, utilize os comandos abaixo:
 
 3. **Inicie a Partida**:
    A partida começará automaticamente após ambos os jogadores se conectarem.
-
-
-
 
 ## Criador
 

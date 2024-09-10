@@ -19,7 +19,7 @@ import { MoveDto } from './dto/move.match.dto';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, namespace: 'match' })
 export class MatchGateway {
   @WebSocketServer() io: ServerM;
 
