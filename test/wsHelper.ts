@@ -1,6 +1,6 @@
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
-import { testRef } from 'test/setup';
+import { testApp } from 'test/setup';
 import { io, Socket } from 'socket.io-client';
 
 let port: any;
@@ -30,8 +30,8 @@ async function getToken() {
     password: 'paia123',
   };
 
-  await testRef.app.get(UserService).create({ ...userAleatorio });
-  return testRef.app.get(AuthService).login(userAleatorio);
+  await testApp.get(UserService).create({ ...userAleatorio });
+  return testApp.get(AuthService).login(userAleatorio);
 }
 
 function onPaia(event: string, cb?: (v: any) => any) {
@@ -44,7 +44,7 @@ function onPaia(event: string, cb?: (v: any) => any) {
 
 export const wsTestAll = () => {
   beforeAll(async () => {
-    const app = await testRef.app.listen(0);
+    const app = await testApp.listen(0);
     port = app.address().port;
   });
   afterAll(() => clients.forEach((c) => c.close()));

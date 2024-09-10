@@ -2,7 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { UUID } from 'crypto';
 import { UserService } from 'src/user/user.service';
-import { testRef } from 'test/setup';
+import { testApp } from 'test/setup';
 import * as request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 
@@ -10,18 +10,18 @@ let uuidPaia: UUID;
 
 describe('/auth/refresh (GET)', () => {
   const fetchPaia = (token: string) =>
-    request(testRef.app.getHttpServer())
+    request(testApp.getHttpServer())
       .get('/auth/refresh')
       .auth(token, { type: 'bearer' });
 
   const createToken = (status: 'exp' | 'valid', uuid = uuidPaia) =>
-    testRef.app
+    testApp
       .get(JwtService)
       .sign({ uuid }, { expiresIn: status == 'exp' ? -1 : 1 });
 
   beforeEach(async () => {
     // criando um user
-    const user = await testRef.app.get(UserService).create({
+    const user = await testApp.get(UserService).create({
       username: 'leoPaia1',
       password: 'leoPaia1',
       email: 'paioso1@gmail.com',
@@ -51,7 +51,7 @@ describe('/auth/refresh (GET)', () => {
   });
 
   it('o token expirado passou do intervalo que pode renovar', async () => {
-    testRef.app.get(ConfigService).set('TOKEN_RENEWAL_LIMIT_DAY', 0);
+    testApp.get(ConfigService).set('TOKEN_RENEWAL_LIMIT_DAY', 0);
 
     const token = createToken('exp');
     const res = await fetchPaia(token);

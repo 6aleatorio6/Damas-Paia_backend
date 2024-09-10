@@ -5,9 +5,7 @@ import { DbTest } from './testDb';
 import { DataSource } from 'typeorm';
 import { AuthenticatedSocketIoAdapter } from 'src/common/wsAuth.adapter';
 
-export const testRef = {} as {
-  app: INestApplication;
-};
+export let testApp: INestApplication;
 
 const dbTest = new DbTest();
 
@@ -21,14 +19,14 @@ beforeAll(async () => {
   }).compile();
 
   // criando o server
-  testRef.app = moduleFixture.createNestApplication();
+  testApp = moduleFixture.createNestApplication();
 
-  const adapter = new AuthenticatedSocketIoAdapter(testRef.app);
-  testRef.app.useWebSocketAdapter(adapter);
-  testRef.app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  const adapter = new AuthenticatedSocketIoAdapter(testApp);
+  testApp.useWebSocketAdapter(adapter);
+  testApp.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  await testRef.app.init();
+  await testApp.init();
 });
 
-beforeEach(() => testRef.app.get(DataSource).synchronize(true));
-afterAll(() => testRef.app.close());
+beforeEach(() => testApp.get(DataSource).synchronize(true));
+afterAll(() => testApp.close());

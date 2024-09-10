@@ -1,18 +1,17 @@
 import { LoginDto } from 'src/auth/dto/login-dto';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
-import { testRef } from 'test/setup';
-
+import { testApp } from 'test/setup';
 const credentials: LoginDto = {
   username: 'leo123',
   password: 'leo123',
 };
 describe('/auth/login (POST)', () => {
   const fetchPaia = (c: Partial<LoginDto>) =>
-    request(testRef.app.getHttpServer()).post('/auth/login').send(c);
+    request(testApp.getHttpServer()).post('/auth/login').send(c);
 
   beforeEach(() =>
-    testRef.app.get(UserService).create({
+    testApp.get(UserService).create({
       ...credentials,
       email: 'paioso2@gmail.com',
     }),

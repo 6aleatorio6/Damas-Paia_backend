@@ -5,7 +5,7 @@ import { UpdateUserDto } from 'src/user/dto/update-user.dto';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
-import { testRef } from 'test/setup';
+import { testApp } from 'test/setup';
 import { Repository } from 'typeorm';
 
 const user = {
@@ -23,16 +23,16 @@ const user2 = {
 describe('/user (PUT)', () => {
   let token: string;
   const reqUpdate = (userUp: UpdateUserDto = {}, reqToken = token) =>
-    request(testRef.app.getHttpServer())
+    request(testApp.getHttpServer())
       .put('/user')
       .auth(reqToken, { type: 'bearer' })
       .send(userUp);
 
   beforeEach(async () => {
-    await testRef.app.get(UserService).create({ ...user });
-    await testRef.app.get(UserService).create({ ...user2 });
+    await testApp.get(UserService).create({ ...user });
+    await testApp.get(UserService).create({ ...user2 });
 
-    token = await testRef.app.get(AuthService).login(user);
+    token = await testApp.get(AuthService).login(user);
   });
 
   //   TESTES
@@ -40,7 +40,7 @@ describe('/user (PUT)', () => {
   it('Atualizando o nome', async () => {
     const res = await reqUpdate({ username: 'outroNome' });
 
-    const promiseIsAltered = testRef.app
+    const promiseIsAltered = testApp
       .get<Repository<User>>(getRepositoryToken(User))
       .existsBy({ username: 'outroNome' });
 
@@ -50,7 +50,7 @@ describe('/user (PUT)', () => {
 
   it('atualizando a senha', async () => {
     const res = await reqUpdate({ password: 'senhaNova' });
-    const userAtt = await testRef.app
+    const userAtt = await testApp
       .get<Repository<User>>(getRepositoryToken(User))
       .findOneBy({ username: user.username });
 

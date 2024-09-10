@@ -1,7 +1,6 @@
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
-import { testRef } from 'test/setup';
-
+import { testApp } from 'test/setup';
 const user = {
   email: 'leoPaia@gmail.com',
   password: 'leo123123',
@@ -10,7 +9,7 @@ const user = {
 
 describe('/user (POST)', () => {
   const reqCreateUser = (userDto = user) =>
-    request(testRef.app.getHttpServer()).post('/user').send(userDto);
+    request(testApp.getHttpServer()).post('/user').send(userDto);
 
   //   TESTES
 
@@ -21,7 +20,7 @@ describe('/user (POST)', () => {
   });
 
   it('o nome já tinha sido registrado', async () => {
-    await testRef.app
+    await testApp
       .get(UserService)
       .create({ ...user, email: 'emailDiferente@gmail.com' });
     const res = await reqCreateUser();
@@ -31,7 +30,7 @@ describe('/user (POST)', () => {
   });
 
   it('o email já tinha sido registrado', async () => {
-    await testRef.app
+    await testApp
       .get(UserService)
       .create({ ...user, username: 'nome diferente' });
     const res = await reqCreateUser();
