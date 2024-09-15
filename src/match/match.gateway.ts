@@ -6,6 +6,7 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import {
+  BadRequestException,
   ParseEnumPipe,
   ParseIntPipe,
   UseFilters,
@@ -54,6 +55,22 @@ export class MatchGateway {
         s.emit('match:start', data);
       });
     }
+  }
+
+  @SubscribeMessage('match:quit')
+  async leaveMatch(socket: SocketM) {
+    const matchInfo = socket.data.matchInfo;
+    if (!matchInfo)
+      throw new BadRequestException('Você não está em uma partida');
+
+    await this.matchService.setWinner(
+      matchInfo.match,
+      socket.request.user.uuid,
+    );
+
+    socket.data.matchInfo = null;
+    this.io.to(matchInfo.match.uuid).emit('match:end', matchInfo.match);
+    this.io.socketsLeave(matchInfo.match.uuid);
   }
 
   @SubscribeMessage('match:move')

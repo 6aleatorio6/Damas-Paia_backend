@@ -6,6 +6,7 @@ import { Match } from 'src/match/entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
 import { MatchInfo, MatchPaiado } from './match';
 import { PieceMatchService } from './piece-match.service';
+import { Piece } from './entities/piece.entity';
 
 @Injectable()
 export class MatchService {
@@ -17,12 +18,20 @@ export class MatchService {
     private pieceMatch: PieceMatchService,
   ) {}
 
-  setWinner(match: Match, UserId: UUID) {
-    const isPlayer1 = match.player1.uuid === UserId;
+  setWinner(match: Match, losingUserId?: UUID) {
+    return this.dataSource.transaction(async (manager) => {
+      const mergedMatch = manager.merge(Match, match, {
+        dateEnd: new Date(),
+        winner: !losingUserId
+          ? null
+          : losingUserId === match.player1.uuid
+            ? match.player2
+            : match.player1,
+      });
 
-    match.winner = isPlayer1 ? match.player1 : match.player2;
-    match.dateEnd = new Date();
-    return this.matchRepository.save(match);
+      await manager.delete(Piece, { match: match });
+      return manager.save(mergedMatch);
+    });
   }
 
   toogleTurn(match: Match) {
