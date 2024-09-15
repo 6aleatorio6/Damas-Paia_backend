@@ -1,20 +1,69 @@
-import { Coord, MatchPaiado } from 'src/match/match';
-import { createClient, wsTestAll } from 'test/wsHelper';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Piece } from 'src/match/entities/piece.entity';
+import { Coord } from 'src/match/match';
+import { testApp } from 'test/setup';
+import { createClient, createMatch, wsTestAll } from 'test/wsHelper';
 
-async function createMatch() {
-  const client1 = await createClient();
-  const client2 = await createClient();
+describe('match (Ws)', () => {
+  wsTestAll();
 
-  client1.emit('match:queue', 'join');
-  client2.emit('match:queue', 'join');
+  describe('Cenários de Saída da Partida', () => {
+    test('Jogador abandona uma partida em andamento', async () => {
+      const pieceRepo = testApp.get(getRepositoryToken(Piece));
+      const { client1, client2, matC2 } = await createMatch();
 
-  const [matC1, matC2] = (await Promise.all([
-    client1.onPaia('match:start'),
-    client2.onPaia('match:start'),
-  ])) as MatchPaiado[];
+      client1.emit('match:quit');
 
-  return { client1, client2, matC1, matC2 };
-}
+      const [res1, res2] = await Promise.all([
+        client1.onPaia('match:end'),
+        client2.onPaia('match:end'),
+      ]);
+
+      expect(res1).toEqual(res2);
+      expect(res1.winner).toHaveProperty('uuid', matC2.myPlayer.uuid);
+      expect(res1).toHaveProperty('dateEnd');
+      await expect(
+        pieceRepo.findBy({ match: { uuid: matC2.matchUuid } }),
+      ).resolves.toHaveLength(0);
+    });
+
+    test('Deve retornar BadRequest ao tentar sair de uma partida inexistente', async () => {
+      const client = await createClient();
+
+      client.emit('match:quit');
+
+      const res = await client.onPaia('error');
+
+      expect(res).toMatchObject({
+        error: 'Bad Request',
+        message: 'Você não está em uma partida',
+        statusCode: 400,
+      });
+    });
+  });
+
+  test('Simulação de partida completa', async () => {
+    const { client1, client2 } = await createMatch();
+
+    client1.on('error', (err) => console.log(err));
+    client2.on('error', (err) => console.log(err));
+
+    for (let i = 0; i < moves.length; i++) {
+      const moveDto = moves[i];
+      const client = i % 2 == 0 ? client1 : client2;
+
+      client.emit('match:move', moveDto);
+
+      const [res1, res2] = await Promise.all([
+        client1.onPaia('match:update'),
+        client2.onPaia('match:update'),
+      ]);
+
+      expect(res1).toBeDefined();
+      expect(res1).toEqual(res2);
+    }
+  }, 7000);
+});
 
 /**
  * Simulação de partida completa
@@ -70,29 +119,3 @@ const moves: { id: number; to: Coord }[] = [
   { id: 1, to: { x: 4, y: 5 } },
   { id: 21, to: { x: 5, y: 4 } },
 ];
-
-describe('match (Ws)', () => {
-  wsTestAll();
-
-  test('Simulação de partida completa', async () => {
-    const { client1, client2 } = await createMatch();
-
-    client1.on('error', (err) => console.log(err));
-    client2.on('error', (err) => console.log(err));
-
-    for (let i = 0; i < moves.length; i++) {
-      const moveDto = moves[i];
-      const client = i % 2 == 0 ? client1 : client2;
-
-      client.emit('match:move', moveDto);
-
-      const [res1, res2] = await Promise.all([
-        client1.onPaia('match:update'),
-        client2.onPaia('match:update'),
-      ]);
-
-      expect(res1).toBeDefined();
-      expect(res1).toEqual(res2);
-    }
-  }, 7000);
-});
