@@ -1,20 +1,4 @@
-import { MatchPaiado } from 'src/match/match';
-import { createClient, wsTestAll } from 'test/wsHelper';
-
-async function createMatch() {
-  const client1 = await createClient();
-  const client2 = await createClient();
-
-  client1.emit('match:queue', 'join');
-  client2.emit('match:queue', 'join');
-
-  const [matC1, matC2] = (await Promise.all([
-    client1.onPaia('match:start'),
-    client2.onPaia('match:start'),
-  ])) as MatchPaiado[];
-
-  return { client1, client2, matC1, matC2 };
-}
+import { createMatch, wsTestAll } from 'test/wsHelper';
 
 describe('match-piece (Ws)', () => {
   wsTestAll();

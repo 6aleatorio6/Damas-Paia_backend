@@ -26,7 +26,7 @@ describe('queue (Ws)', () => {
   test('Deve retornar Badrequest ao passar uma action errada no Match:queue', async () => {
     const client = await createClient();
 
-    client.emit('match:queue', 'joinPaia');
+    client.emit('match:queue', 'joinPaia' as any);
 
     const res = await client.onPaia('error');
 
