@@ -11,13 +11,19 @@ export class DbTest extends DataSource {
       port: +process.env['POSTGRES_PORT'],
       database: 'postgres',
     });
-
-    this.dbName = `TEST_POSTGRES_PAIA_${Date.now() + Math.floor(Math.random() * 100)}`;
   }
 
   async create() {
     await this.initialize();
-    await this.query(`CREATE DATABASE "${this.dbName}"`);
+    const createDb = async () => {
+      try {
+        this.dbName = `TEST_POSTGRES_PAIA_${Date.now() + Math.floor(Math.random() * 100)}`;
+        await this.query(`CREATE DATABASE "${this.dbName}"`);
+      } catch {
+        createDb();
+      }
+    };
+    await createDb();
     await this.destroy();
   }
 

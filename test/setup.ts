@@ -5,8 +5,12 @@ import { DbTest } from './testDb';
 import { DataSource } from 'typeorm';
 import { AuthenticatedSocketIoAdapter } from 'src/common/wsAuth.adapter';
 
-export let testApp: INestApplication;
+jest.useFakeTimers({
+  doNotFake: ['nextTick', 'setImmediate', 'Date', 'clearImmediate'],
+  advanceTimers: true,
+});
 
+export let testApp: INestApplication;
 const dbTest = new DbTest();
 
 // Testes
