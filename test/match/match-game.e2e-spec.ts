@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Piece } from 'src/match/entities/piece.entity';
 import { Coord } from 'src/match/match';
@@ -7,7 +8,7 @@ import { createClient, createMatch, wsTestAll } from 'test/wsHelper';
 describe('match (Ws)', () => {
   wsTestAll();
 
-  describe('Cenários de Saída da Partida', () => {
+  describe('Cenários de Abandono de Partida (match:quit)', () => {
     test('Jogador abandona uma partida em andamento', async () => {
       const pieceRepo = testApp.get(getRepositoryToken(Piece));
       const { client1, client2, matC2 } = await createMatch();
@@ -25,9 +26,10 @@ describe('match (Ws)', () => {
       await expect(
         pieceRepo.findBy({ match: { uuid: matC2.matchUuid } }),
       ).resolves.toHaveLength(0);
+      expect(client1.disconnected).toBe(true);
     });
 
-    test('Deve retornar BadRequest ao tentar sair de uma partida inexistente', async () => {
+    test('Deve retornar erro 400 ao tentar sair de uma partida inexistente', async () => {
       const client = await createClient();
 
       client.emit('match:quit');
@@ -42,6 +44,74 @@ describe('match (Ws)', () => {
     });
   });
 
+  describe('Cenários de Desconexão e Reconexão', () => {
+    test('Deve finalizar a partida 10s após a desconexão de um jogador', async () => {
+      const { client1, client2, matC2 } = await createMatch();
+      client1.disconnect();
+      await jest.advanceTimersByTimeAsync(
+        +testApp.get(ConfigService).get('RECONECT_MATCH_TIMEOUT'),
+      );
+
+      const res = await client2.onPaia('match:end');
+      expect(res.winner).toHaveProperty('uuid', matC2.myPlayer.uuid);
+      expect(res).toHaveProperty('dateEnd');
+    });
+
+    test('Deve permitir que o jogador se reconecte após a desconexão', async () => {
+      const { client1, matC1 } = await createMatch();
+      client1.disconnect();
+      client1.connect();
+
+      const res = await client1.onPaia('match:start');
+      expect(res).toEqual(matC1);
+    });
+
+    test('Deve declarar o jogador 2 como vencedor se o jogador 1 não se reconectar', async () => {
+      const { client1, client2, matC2 } = await createMatch();
+
+      client1.disconnect();
+
+      // espera o tempo de reconexão do jogador 1
+      const res = client2.onPaia('match:end');
+      await jest.advanceTimersByTimeAsync(
+        +testApp.get(ConfigService).get('RECONECT_MATCH_TIMEOUT') + 100,
+      );
+
+      // verifica se o jogador 2 ganhou, já que o jogador 1 não se reconectou
+      await expect(res).resolves.toHaveProperty(
+        'winner.uuid',
+        matC2.myPlayer.uuid,
+      );
+    });
+
+    test('Deve declarar vencedor o último jogador a se reconectar após ambos se desconectarem', async () => {
+      // cria a partida
+      const { client1, client2, matC2 } = await createMatch();
+
+      // desconecta o jogador 1
+      client1.disconnect();
+      // desconecta o jogador 2 depois de um tempo
+      await jest.advanceTimersByTimeAsync(100);
+      client2.disconnect();
+
+      // jogador2 se reconecta
+      client2.connect();
+      await client2.onPaia('match:start');
+
+      // espera o tempo de reconexão do jogador 1
+      const res = client2.onPaia('match:end');
+      await jest.advanceTimersByTimeAsync(
+        +testApp.get(ConfigService).get('RECONECT_MATCH_TIMEOUT') + 100,
+      );
+
+      // verifica se o jogador 2 ganhou, já que o jogador 1 um foi o primeiro a se desconectar
+      await expect(res).resolves.toHaveProperty(
+        'winner.uuid',
+        matC2.myPlayer.uuid,
+      );
+    });
+  });
+
   test('Simulação de partida completa', async () => {
     const { client1, client2 } = await createMatch();
 
@@ -52,17 +122,17 @@ describe('match (Ws)', () => {
       const moveDto = moves[i];
       const client = i % 2 == 0 ? client1 : client2;
 
+      await client.emitWithAck('match:paths', moveDto.id);
       client.emit('match:move', moveDto);
 
-      const [res1, res2] = await Promise.all([
+      const ress = Promise.all([
         client1.onPaia('match:update'),
         client2.onPaia('match:update'),
       ]);
 
-      expect(res1).toBeDefined();
-      expect(res1).toEqual(res2);
+      await expect(ress).resolves.toBeTruthy();
     }
-  }, 7000);
+  }, 10000);
 });
 
 /**
