@@ -6,10 +6,12 @@ import { Piece } from './entities/piece.entity';
 import { PieceMatchService } from './piece-match.service';
 import { MatchService } from './match.service';
 import { PieceMovService } from './piece-mov.service';
+import { MatchController } from './match.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Match, Piece])],
   providers: [MatchGateway, PieceMatchService, MatchService, PieceMovService],
   exports: [TypeOrmModule],
+  controllers: [MatchController],
 })
 export class MatchModule {}

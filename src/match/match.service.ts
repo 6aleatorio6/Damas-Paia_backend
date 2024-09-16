@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { UUID } from 'crypto';
 import { Match } from 'src/match/entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -17,6 +17,30 @@ export class MatchService {
     private dataSource: DataSource,
     private pieceMatch: PieceMatchService,
   ) {}
+
+  async isUserInMatch(userId: UUID) {
+    return this.matchRepository.existsBy([
+      { player1: { uuid: userId }, dateEnd: IsNull(), winner: IsNull() },
+      { player2: { uuid: userId }, dateEnd: IsNull(), winner: IsNull() },
+    ]);
+  }
+
+  async findMatchsByUser(userId: UUID) {
+    return this.matchRepository.find({
+      where: [
+        { player1: { uuid: userId }, winner: Not(IsNull()) },
+        { player2: { uuid: userId }, winner: Not(IsNull()) },
+      ],
+      select: {
+        uuid: true,
+        dateInit: true,
+        dateEnd: true,
+        turn: { uuid: true },
+        player1: { username: true, uuid: true },
+        player2: { username: true, uuid: true },
+      },
+    });
+  }
 
   setWinner(match: Match, losingUserId?: UUID) {
     return this.dataSource.transaction(async (manager) => {
