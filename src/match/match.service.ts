@@ -29,7 +29,7 @@ export class MatchService {
             : match.player1,
       });
 
-      await manager.delete(Piece, { match: match });
+      await manager.delete(Piece, { match: { uuid: match.uuid } });
       return manager.save(mergedMatch);
     });
   }
