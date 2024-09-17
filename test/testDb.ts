@@ -5,10 +5,7 @@ export class DbTest extends DataSource {
   constructor() {
     super({
       type: 'postgres',
-      username: process.env['POSTGRES_USER'],
-      password: process.env['POSTGRES_PASSWORD'],
-      host: process.env['POSTGRES_HOST'],
-      port: +process.env['POSTGRES_PORT'],
+      url: process.env.DATABASE_URL,
       database: 'postgres',
     });
   }

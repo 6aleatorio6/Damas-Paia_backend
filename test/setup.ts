@@ -16,7 +16,8 @@ const dbTest = new DbTest();
 // Testes
 beforeAll(async () => {
   await dbTest.create();
-  process.env['POSTGRES_DB'] = dbTest.dbName;
+  const [baseUrl] = process.env.DATABASE_URL.split(/\/[^/]*$/);
+  process.env.DATABASE_URL = `${baseUrl}/${dbTest.dbName}`;
 
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],

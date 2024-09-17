@@ -12,11 +12,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {
       type: 'postgres',
-      host: this.config.get('POSTGRES_HOST', 'localhost'),
-      port: +this.config.get('POSTGRES_PORT', 5432),
-      username: this.config.get('POSTGRES_USER', 'root'),
-      password: this.config.get('POSTGRES_PASSWORD', ''),
-      database: this.config.getOrThrow('POSTGRES_DB'),
+      url: this.config.get('DATABASE_URL'),
       dropSchema: this.isModo('test'),
       synchronize: this.isModo('dev', 'test'),
       entities: [User, Piece, Match],
