@@ -32,26 +32,18 @@ interface UpdatePieces {
 
 //
 //
-// QueueService
-type MatchPaiado = {
-  myPlayer: PlayerPaiado;
-  playerOponent: PlayerPaiado;
-  matchUuid: UUID;
-  dateInit: Date;
-  turn: UUID;
-};
-
-//
-//
 // MatchGateway
+type Players = 'player1' | 'player2';
 
 interface SocketData {
   userId: UUID;
+  matchId: UUID;
+  iAmPlayer: Players;
 }
 
 // EMIT
 interface ServerToCl {
-  'match:start': (matchPaiado: MatchPaiado) => void;
+  'match:created': (matchPaiado: Match, youIs: Players) => void;
   'match:end': (matchPaiado: Match) => void;
   'match:update': (updatePieces: UpdatePieces, turn: UUID) => void;
   error: (error: Error) => void;

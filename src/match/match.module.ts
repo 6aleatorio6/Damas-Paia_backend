@@ -3,14 +3,12 @@ import { MatchGateway } from './match.gateway';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Match } from './entities/match.entity';
 import { Piece } from './entities/piece.entity';
-import { PieceMatchService } from './piece-match.service';
-import { MatchService } from './match.service';
-import { PieceMovService } from './piece-mov.service';
 import { MatchController } from './match.controller';
+import { MatchService } from './match.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Match, Piece])],
-  providers: [MatchGateway, PieceMatchService, MatchService, PieceMovService],
+  providers: [MatchGateway, MatchService],
   exports: [TypeOrmModule],
   controllers: [MatchController],
 })

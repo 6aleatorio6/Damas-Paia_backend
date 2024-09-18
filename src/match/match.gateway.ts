@@ -4,6 +4,7 @@ import {
   WebSocketServer,
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
 } from '@nestjs/websockets';
 import {
   BadRequestException,
@@ -14,8 +15,9 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
-import { ServerM, SocketM } from './match';
+import { ServerM, SocketM } from './match.d';
 import { MoveDto } from './dto/move.match.dto';
+import { MatchService } from './match.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
@@ -23,7 +25,7 @@ import { MoveDto } from './dto/move.match.dto';
 export class MatchGateway implements OnGatewayConnection {
   @WebSocketServer() io: ServerM;
 
-  constructor() {}
+  constructor(private readonly matchService: MatchService) {}
 
   handleConnection(socket: SocketM) {
     socket.data.userId = socket.request.user.uuid;
@@ -33,7 +35,30 @@ export class MatchGateway implements OnGatewayConnection {
   async matching(
     @ConnectedSocket() socket: SocketM,
     @MessageBody(new ParseEnumPipe(['join', 'leave'])) action: 'join' | 'leave',
-  ) {}
+  ) {
+    if (action === 'leave') return socket.leave('queue');
+
+    const isInMatch = await this.matchService.isUserInMatch(socket.data.userId);
+    if (isInMatch) throw new BadRequestException('Você já está em uma partida');
+
+    socket.join('queue');
+    const socketsInQueue = await this.io.in('queue').fetchSockets();
+    if (socketsInQueue.length >= 2) {
+      const [player1, player2] = socketsInQueue;
+      const match = await this.matchService.createMatchAndPieces(
+        player1.data.userId,
+        player2.data.userId,
+      );
+
+      [player1, player2].forEach((socketPlayers, i) => {
+        socketPlayers.leave('queue');
+        socketPlayers.join(match.uuid);
+        socketPlayers.data.matchId = match.uuid;
+        socketPlayers.data.iAmPlayer = i ? 'player1' : 'player2';
+        socketPlayers.emit('match:created', match, i ? 'player1' : 'player2');
+      });
+    }
+  }
 
   @SubscribeMessage('match:quit')
   async leaveMatch(socket: SocketM) {}
