@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Match } from './match.entity';
+import { Match, playersEnum } from './match.entity';
 
 @Entity()
 export class Piece {
@@ -9,7 +9,7 @@ export class Piece {
   @ManyToOne(() => Match)
   match: Match;
 
-  @Column({ enum: ['player1', 'player2'] })
+  @Column({ enum: playersEnum })
   player: 'player1' | 'player2';
 
   @Column()

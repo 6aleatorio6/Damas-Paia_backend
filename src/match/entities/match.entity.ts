@@ -8,6 +8,8 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+export const playersEnum = ['player1', 'player2'] as const;
+
 @Entity()
 export class Match {
   @PrimaryGeneratedColumn('uuid')
@@ -19,10 +21,10 @@ export class Match {
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   player2: User;
 
-  @Column({ nullable: true, enum: ['player1', 'player2'] })
+  @Column({ nullable: true, enum: playersEnum })
   winner: 'player1' | 'player2';
 
-  @Column({ enum: ['player1', 'player2'], default: 'player1' })
+  @Column({ enum: playersEnum, default: 'player1' })
   turn: 'player1' | 'player2';
 
   @CreateDateColumn()
