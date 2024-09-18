@@ -1,6 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Match } from './match.entity';
-import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Piece {
@@ -10,8 +9,8 @@ export class Piece {
   @ManyToOne(() => Match)
   match: Match;
 
-  @ManyToOne(() => User, { onDelete: 'SET NULL' })
-  player: User;
+  @Column({ enum: ['player1', 'player2'] })
+  player: 'player1' | 'player2';
 
   @Column()
   x: number;
@@ -19,5 +18,5 @@ export class Piece {
   y: number;
 
   @Column({ default: false })
-  queen?: boolean;
+  isQueen?: boolean;
 }
