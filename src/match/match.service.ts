@@ -31,13 +31,13 @@ export class MatchService {
       });
 
       await manager.save(match);
-      await manager.save(this.createPieces(match));
+      await manager.save(this._createPieces(match));
 
       return match;
     });
   }
 
-  private createPieces(match: Match) {
+  _createPieces(match: Match) {
     // posicionamente das peças no eixo Y de acordo com o eixo X
     // ex: se no player1 o eixo X for impar, então terá pelas nos Y 0 e 2
     const piecePlacementYEnum = {
@@ -47,9 +47,9 @@ export class MatchService {
 
     const pieces: Piece[] = [];
     // para cada player
-    for (const index in playersEnum) {
-      const player = match[index];
-      const piecePlacementY = piecePlacementYEnum[index];
+    for (const player of playersEnum) {
+      const piecePlacementY = piecePlacementYEnum[player];
+
       // para cada coluna
       for (let x = 0; x < 8; x++) {
         const yArray = piecePlacementY[x % 2 === 0 ? 'evenX' : 'oddX'];

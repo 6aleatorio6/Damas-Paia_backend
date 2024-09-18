@@ -1,52 +1,83 @@
 import { TestBed } from '@automock/jest';
-import { Match } from '../entities/match.entity';
-import { User } from 'src/user/entities/user.entity';
 import { MatchService } from '../match.service';
-
-const userPaia = { email: 'leonar', password: '123', username: 'leonar' };
-const player1: User = { ...userPaia, uuid: 'player1-uuid-uuid-uuid-uuid' };
-const player2: User = { ...userPaia, uuid: 'player2-uuid-uuid-uuid-uuid' };
-
-const match: Match = {
-  uuid: 'match-uuid-uuid-uuid-uuid',
-  player2,
-  player1,
-  turn: player1,
-  winner: null,
-  dateInit: null,
-};
+import { Piece } from '../entities/piece.entity';
+import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('MatchService', () => {
   let matchService: MatchService;
+  let piecesRepoMock: jest.Mocked<Repository<Piece>>;
 
   beforeEach(() => {
-    matchService = TestBed.create(MatchService).compile().unit;
+    const { unit, unitRef } = TestBed.create(MatchService).compile();
+    matchService = unit;
+    piecesRepoMock = unitRef.get(getRepositoryToken(Piece).toString());
+
+    piecesRepoMock.create.mockImplementation((x: any) => x);
   });
 
-  describe('transformMatchInfo', () => {
-    const matchInfo = {
-      match,
-      pieces: [
-        { id: 1, x: 2, y: 1, queen: false, match, player: player1 },
-        { id: 2, x: 2, y: 1, queen: false, match, player: player2 },
-      ],
-    };
+  describe('createPieces', () => {
+    const match = {
+      uuid: 'match-uuid-uuid-uuid-uuid',
+      player1: {},
+      player2: {},
+    } as any;
 
-    it('deve transformar o MatchInfo em um MatchPaiado corretamente', () => {
-      const matchPaiado = matchService.transformMatchInfo(
-        matchInfo,
-        player1.uuid,
+    it('deve criar as peças de um jogo', async () => {
+      const pieces = matchService['_createPieces'](match);
+
+      expect(pieces).toHaveLength(24);
+      expect(piecesRepoMock.create).toHaveBeenCalledTimes(24);
+    });
+
+    it('deve atribuir a partida e o jogador corretos a cada peça', async () => {
+      const pieces = matchService['_createPieces'](match);
+
+      const pP2Length = pieces.filter(({ player }) => player === 'player2');
+      expect(pP2Length.length).toBe(12);
+
+      const pP1Length = pieces.filter(({ player }) => player === 'player1');
+      expect(pP1Length.length).toBe(12);
+    });
+
+    it('deve verificar cada coordenada das peças do player 1', async () => {
+      const pieces = matchService._createPieces(match);
+
+      expect(pieces).toEqual(
+        expect.arrayContaining([
+          { match, player: 'player1', x: 1, y: 0 },
+          { match, player: 'player1', x: 3, y: 0 },
+          { match, player: 'player1', x: 5, y: 0 },
+          { match, player: 'player1', x: 7, y: 0 },
+          { match, player: 'player1', x: 0, y: 1 },
+          { match, player: 'player1', x: 2, y: 1 },
+          { match, player: 'player1', x: 4, y: 1 },
+          { match, player: 'player1', x: 6, y: 1 },
+          { match, player: 'player1', x: 1, y: 2 },
+          { match, player: 'player1', x: 3, y: 2 },
+          { match, player: 'player1', x: 5, y: 2 },
+        ]),
       );
+    });
 
-      expect(matchPaiado.myPlayer.uuid).toBe(player1.uuid);
-      expect(matchPaiado.playerOponent.uuid).toBe(player2.uuid);
-      expect(matchPaiado.turn).toBe(player1.uuid);
+    it('deve verificar cada coordenada das peças do player 2', async () => {
+      const pieces = matchService._createPieces(match);
 
-      const piecesP1 = { id: 1, x: 2, y: 1, queen: false };
-      expect(matchPaiado.myPlayer.pieces[0]).toEqual(piecesP1);
-
-      const piecesP2 = { id: 2, x: 2, y: 1, queen: false };
-      expect(matchPaiado.playerOponent.pieces[0]).toEqual(piecesP2);
+      expect(pieces).toEqual(
+        expect.arrayContaining([
+          { match, player: 'player2', x: 0, y: 5 },
+          { match, player: 'player2', x: 2, y: 5 },
+          { match, player: 'player2', x: 4, y: 5 },
+          { match, player: 'player2', x: 6, y: 5 },
+          { match, player: 'player2', x: 1, y: 6 },
+          { match, player: 'player2', x: 3, y: 6 },
+          { match, player: 'player2', x: 5, y: 6 },
+          { match, player: 'player2', x: 7, y: 6 },
+          { match, player: 'player2', x: 0, y: 7 },
+          { match, player: 'player2', x: 2, y: 7 },
+          { match, player: 'player2', x: 4, y: 7 },
+        ]),
+      );
     });
   });
 });
