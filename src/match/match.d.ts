@@ -16,20 +16,16 @@ interface Coord {
   x: number;
   y: number;
 }
-interface Casa {
+interface Square {
   coord: Coord;
   piece?: Piece;
-}
-interface PieceVerify {
-  piece: Piece;
-  pieces: Piece[];
 }
 
 interface UpdatePieces {
   deads: number[];
-  piece: {
+  pieceMoved: {
     id: number;
-    queen: boolean;
+    isQueen: boolean;
     movs: Coord[];
   };
 }
@@ -37,7 +33,6 @@ interface UpdatePieces {
 //
 //
 // QueueService
-type PlayerPaiado = User & { pieces: Omit<Piece, 'match' | 'user'>[] };
 type MatchPaiado = {
   myPlayer: PlayerPaiado;
   playerOponent: PlayerPaiado;
@@ -64,10 +59,6 @@ interface ClientToSv {
   'match:move': (moveDto: MoveDto) => void;
   'match:paths': (pieceId: number, ack?: (paths: Coord[]) => void) => void;
   'match:quit': () => void;
-}
-
-interface SocketData {
-  matchInfo: MatchInfo;
 }
 
 type ServerM = Server<ClientToSv, ServerToCl, ClientToSv, SocketData>;
