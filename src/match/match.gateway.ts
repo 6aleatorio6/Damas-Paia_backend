@@ -20,10 +20,14 @@ import { MoveDto } from './dto/move.match.dto';
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
 @WebSocketGateway({ cors: true, namespace: 'match' })
-export class MatchGateway {
+export class MatchGateway implements OnGatewayConnection {
   @WebSocketServer() io: ServerM;
 
   constructor() {}
+
+  handleConnection(socket: SocketM) {
+    socket.data.userId = socket.request.user.uuid;
+  }
 
   @SubscribeMessage('match:queue')
   async matching(

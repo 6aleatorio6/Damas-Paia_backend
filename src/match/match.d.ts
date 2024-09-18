@@ -45,6 +45,10 @@ type MatchPaiado = {
 //
 // MatchGateway
 
+interface SocketData {
+  userId: UUID;
+}
+
 // EMIT
 interface ServerToCl {
   'match:start': (matchPaiado: MatchPaiado) => void;
