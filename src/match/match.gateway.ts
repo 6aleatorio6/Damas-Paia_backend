@@ -45,7 +45,7 @@ export class MatchGateway implements OnGatewayConnection {
     const socketsInQueue = await this.io.in('queue').fetchSockets();
     if (socketsInQueue.length >= 2) {
       const [player1, player2] = socketsInQueue;
-      const match = await this.matchService.createMatchAndPieces(
+      const { match, pieces } = await this.matchService.createMatchAndPieces(
         player1.data.userId,
         player2.data.userId,
       );
@@ -55,7 +55,7 @@ export class MatchGateway implements OnGatewayConnection {
         socketPlayers.join(match.uuid);
         socketPlayers.data.matchId = match.uuid;
         socketPlayers.data.iAmPlayer = i ? 'player1' : 'player2';
-        socketPlayers.emit('match:created', match, i ? 'player1' : 'player2');
+        socketPlayers.emit('match:init', match, pieces);
       });
     }
   }

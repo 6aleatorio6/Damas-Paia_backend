@@ -30,10 +30,12 @@ export class MatchService {
         player2: { uuid: player2Id },
       });
 
-      await manager.save(match);
-      await manager.save(this._createPieces(match));
+      const pieces = this._createPieces(match);
 
-      return match;
+      await manager.save(match);
+      await manager.save(pieces);
+
+      return { match, pieces: pieces.map((p) => ({ match: undefined, ...p })) };
     });
   }
 

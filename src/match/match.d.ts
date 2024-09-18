@@ -43,7 +43,7 @@ interface SocketData {
 
 // EMIT
 interface ServerToCl {
-  'match:created': (matchPaiado: Match, youIs: Players) => void;
+  'match:init': (matchPaiado: Match, pieces: Omit<Piece, 'match'>[]) => void;
   'match:end': (matchPaiado: Match) => void;
   'match:update': (updatePieces: UpdatePieces, turn: UUID) => void;
   error: (error: Error) => void;
