@@ -102,5 +102,16 @@ export class MatchGateway implements OnGatewayConnection {
   }
 
   @SubscribeMessage('match:quit')
-  async leaveMatch(socket: SocketM) {}
+  async leaveMatch(socket: SocketM) {
+    const { matchId, iAmPlayer } = socket.data;
+
+    this.io
+      .in(matchId)
+      .emit(
+        'match:finish',
+        await this.matchService.setWinner(matchId, iAmPlayer, 'resign'),
+      );
+
+    this.io.in(matchId).disconnectSockets();
+  }
 }

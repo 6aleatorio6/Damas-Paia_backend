@@ -7,6 +7,8 @@ import { Piece } from './entities/piece.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Players } from './match';
 
+type WinnerStatus = Match['winnerStatus'];
+
 @Injectable()
 export class MatchService {
   constructor(
@@ -17,6 +19,39 @@ export class MatchService {
     @InjectDataSource()
     private dataSource: DataSource,
   ) {}
+
+  async setWinner(matchId: UUID, loser: Players, status: WinnerStatus) {
+    const match = await this.matchRepository.findOne({
+      where: { uuid: matchId, winner: IsNull() },
+      relations: ['player1', 'player2'],
+      select: {
+        uuid: true,
+        player1: { username: true, uuid: true },
+        player2: { username: true, uuid: true },
+        dateInit: true,
+      },
+    });
+
+    if (!match) throw new BadRequestException('Partida não encontrada');
+
+    this.matchRepository.merge(match, {
+      winner: loser === 'player1' ? 'player2' : 'player1',
+      winnerStatus: status,
+      dateEnd: new Date(),
+    });
+
+    try {
+      this.dataSource.transaction(async (manager) => {
+        await manager.save(match);
+        await manager.delete(Piece, { match: { uuid: matchId } });
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao finalizar partida');
+    }
+
+    return match;
+  }
+  }
 
   async toogleTurn(match: Match) {
     const turnUpdated = match.turn === 'player1' ? 'player2' : 'player1';

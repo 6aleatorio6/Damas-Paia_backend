@@ -21,8 +21,11 @@ export class Match {
   @ManyToOne(() => User, { onDelete: 'SET NULL' })
   player2: User;
 
-  @Column({ nullable: true, enum: playersEnum })
+  @Column({ enum: playersEnum, nullable: true })
   winner: 'player1' | 'player2';
+
+  @Column({ enum: ['checkmate', 'resign', 'timeout'], nullable: true })
+  winnerStatus: 'checkmate' | 'resign' | 'timeout';
 
   @Column({ enum: playersEnum, default: 'player1' })
   turn: 'player1' | 'player2';
