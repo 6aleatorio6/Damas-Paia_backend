@@ -25,18 +25,22 @@ describe('/match (CONTROLLER)', () => {
         .get('/match/user-matches')
         .auth(reqToken, { type: 'bearer' });
 
-    test('deve retornar os matches do usuário', async () => {
+    test('deve retornar as partidas do usuário', async () => {
       const { client1 } = await createMatch();
       const token = client1.io.opts.extraHeaders.Authorization;
 
       client1.emit('match:quit');
-      await client1.onPaia('match:end');
+      await client1.onPaia('match:finish');
 
       const res = await reqFind(token.split(' ')[1]);
 
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveLength(1);
-      expect(res.body[0]).toHaveProperty('uuid');
+      expect(res.body[0]).toHaveProperty('youAre', 'player1');
+      expect(res.body[0]).toHaveProperty('winner', 'player2');
+      expect(res.body[0]).toHaveProperty('dateEnd');
+      expect(res.body[0]).toHaveProperty('player1.uuid');
+      expect(res.body[0]).toHaveProperty('player2.username');
     });
 
     test('deve retornar [] se o usuário não tiver matches', async () => {
@@ -83,7 +87,7 @@ describe('/match (CONTROLLER)', () => {
       const token = client1.io.opts.extraHeaders.Authorization;
 
       client1.emit('match:quit');
-      await client1.onPaia('match:end');
+      await client1.onPaia('match:finish');
 
       const res = await reqIsInMatch(token.split(' ')[1]);
 
