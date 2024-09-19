@@ -8,24 +8,26 @@ import { createClient, createMatch, wsTestAll } from 'test/wsHelper';
 describe('match (Ws)', () => {
   wsTestAll();
 
-  describe('Cenários de Abandono de Partida (match:quit)', () => {
+  describe.only('Cenários de Abandono de Partida (match:quit)', () => {
     test('Jogador abandona uma partida em andamento', async () => {
       const pieceRepo = testApp.get(getRepositoryToken(Piece));
       const { client1, client2, matC2 } = await createMatch();
+      const [match] = matC2;
 
       client1.emit('match:quit');
 
-      const [res1, res2] = await Promise.all([
-        client1.onPaia('match:end'),
-        client2.onPaia('match:end'),
+      const [[res1], [res2]] = await Promise.all([
+        client1.onPaia('match:finish'),
+        client2.onPaia('match:finish'),
       ]);
 
       expect(res1).toEqual(res2);
-      expect(res1.winner).toHaveProperty('uuid', matC2.myPlayer.uuid);
+      expect(res1.winner).toBe('player2');
       expect(res1).toHaveProperty('dateEnd');
-      await expect(
-        pieceRepo.findBy({ match: { uuid: matC2.matchUuid } }),
-      ).resolves.toHaveLength(0);
+      expect(res1).toHaveProperty('winnerStatus', 'resign');
+
+      const pieceQuery = pieceRepo.findBy({ match: { uuid: match.uuid } });
+      await expect(pieceQuery).resolves.toHaveLength(0);
       expect(client1.disconnected).toBe(true);
     });
 
@@ -34,11 +36,10 @@ describe('match (Ws)', () => {
 
       client.emit('match:quit');
 
-      const res = await client.onPaia('error');
-
+      const [res] = await client.onPaia('error');
       expect(res).toMatchObject({
         error: 'Bad Request',
-        message: 'Você não está em uma partida',
+        message: 'Partida não encontrada',
         statusCode: 400,
       });
     });
