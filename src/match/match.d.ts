@@ -19,6 +19,7 @@ interface Coord {
 interface Square {
   coord: Coord;
   piece?: Piece;
+  side?: Square[];
 }
 
 interface UpdatePieces {

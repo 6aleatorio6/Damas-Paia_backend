@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { Match, playersEnum } from 'src/match/entities/match.entity';
@@ -15,6 +15,21 @@ export class MatchService {
     @InjectDataSource()
     private dataSource: DataSource,
   ) {}
+
+  async getAndValidatePieces(userId: UUID, matchId: UUID, pieceId: number) {
+    const match = await this.matchRepository.findOneBy({ uuid: matchId });
+    if (!match) throw new BadRequestException('Partida não encontrada');
+
+    const piece = await this.pieceRepository.findOneBy({ id: pieceId });
+    if (!piece) throw new BadRequestException('Peça não encontrada');
+
+    const isPieceIsFromUser = match[piece.player].uuid === userId;
+    if (!isPieceIsFromUser) throw new BadRequestException('A peça não é sua');
+
+    const pieces = await this.pieceRepository.findBy({ match });
+
+    return { match, piece, pieces };
+  }
 
   async isUserInMatch(userId: UUID) {
     return this.matchRepository.existsBy([
