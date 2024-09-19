@@ -49,7 +49,7 @@ interface ServerToCl {
 
 // ON
 interface ClientToSv {
-  'match:queue': (action: 'join' | 'leave') => void;
+  'match:queue': (action: 'join' | 'leave', cb?: (m: string) => void) => void;
   'match:move': (moveDto: MoveDto) => void;
   'match:paths': (pieceId: number, ack?: (paths: Coord[]) => void) => void;
   'match:quit': () => void;

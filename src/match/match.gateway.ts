@@ -40,28 +40,34 @@ export class MatchGateway implements OnGatewayConnection {
     @ConnectedSocket() socket: SocketM,
     @MessageBody(new ParseEnumPipe(['join', 'leave'])) action: 'join' | 'leave',
   ) {
-    if (action === 'leave') return socket.leave('queue');
+    if (action === 'leave') {
+      await socket.leave('queue');
+      return 'Você saiu da fila';
+    }
 
     const isInMatch = await this.matchService.isUserInMatch(socket.data.userId);
     if (isInMatch) throw new BadRequestException('Você já está em uma partida');
 
-    socket.join('queue');
+    await socket.join('queue');
     const socketsInQueue = await this.io.in('queue').fetchSockets();
     if (socketsInQueue.length >= 2) {
       const [player1, player2] = socketsInQueue;
+      socketsInQueue.forEach((s) => s.leave('queue'));
+
       const { match, pieces } = await this.matchService.createMatchAndPieces(
         player1.data.userId,
         player2.data.userId,
       );
 
       [player1, player2].forEach((socketPlayers, i) => {
-        socketPlayers.leave('queue');
         socketPlayers.join(match.uuid);
         socketPlayers.data.matchId = match.uuid;
         socketPlayers.data.iAmPlayer = i ? 'player1' : 'player2';
         socketPlayers.emit('match:init', match, pieces);
       });
     }
+
+    return 'Você entrou na fila';
   }
 
   @SubscribeMessage('match:paths')

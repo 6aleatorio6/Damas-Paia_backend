@@ -4,6 +4,7 @@ import { DataSource, IsNull, Repository } from 'typeorm';
 import { Match, playersEnum } from 'src/match/entities/match.entity';
 import { UUID } from 'crypto';
 import { Piece } from './entities/piece.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class MatchService {
@@ -46,14 +47,17 @@ export class MatchService {
 
   async createMatchAndPieces(player1Id: UUID, player2Id: UUID) {
     return this.dataSource.transaction(async (manager) => {
+      const u1 = await manager.existsBy(User, { uuid: player1Id });
+      const u2 = await manager.existsBy(User, { uuid: player2Id });
+      if (!u1 || !u2) throw new BadRequestException('Usuário não encontrado');
+
       const match = this.matchRepository.create({
         player1: { uuid: player1Id },
         player2: { uuid: player2Id },
       });
+      await manager.save(match);
 
       const pieces = this._createPieces(match);
-
-      await manager.save(match);
       await manager.save(pieces);
 
       return { match, pieces: pieces.map((p) => ({ match: undefined, ...p })) };
