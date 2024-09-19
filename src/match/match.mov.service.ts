@@ -7,8 +7,8 @@ import { Coord, Square } from './match.d';
 // não altere a ordem, pois a ordem é importante para a lógica do createPaths
 const directions = {
   upRight: [1, 1],
-  upLeft: [1, -1],
-  downRight: [-1, 1],
+  upLeft: [-1, 1],
+  downRight: [1, -1],
   downLeft: [-1, -1],
 } as const;
 
@@ -38,22 +38,22 @@ export class MovService {
   }
 
   /**
-   * Retorna os caminhos possíveis para a peça
+   * Retorna um array de coordenadas possíveis para a peça
    */
   async getPaths(piece: Piece, pieces: Piece[]) {
-    return this.createPaths(piece, pieces).flatMap(this.flatPaths);
+    return this.createPaths(piece, pieces).flatMap((s) => this.flatPaths(s));
   }
 
   /**
-   * Achata os lados(side) dos caminhos no array principal
+   * Achata os lados(side) dos caminhos no array principal, formando um array das coordenadas possíveis
    */
-  private flatPaths(paths: Square[]): Omit<Square, 'side'>[] {
-    const result = paths.map((p) => {
-      const { side, ...rest } = p;
-      if (side?.length) result.push(...this.flatPaths(side));
-      return rest;
-    });
-    return result;
+  private flatPaths(paths: Square[], coords = []): Omit<Square, 'side'>[] {
+    for (const path of paths) {
+      const { side, coord } = path;
+      coords.push(coord);
+      if (side.length) this.flatPaths(path.side, coords);
+    }
+    return coords;
   }
 
   /**
@@ -109,7 +109,7 @@ export class MovService {
       const path = this.createPath(piece, pieces, direcao as DMap);
 
       // essa parte é a lógica de deixar apenas os movimentos de volta quando a peça é dama ou quando for captura
-      const isPieceCapture = path[0].piece && !path[1]?.piece;
+      const isPieceCapture = path[0]?.piece && !path[1]?.piece;
       return i < 2 ? path : piece.isQueen || isPieceCapture ? path : [];
     });
   }
@@ -136,7 +136,7 @@ export class MovService {
 
       // pare quando encontrar uma peça do mesmo jogador
       // ou quando tiver uma sequência de 2 casas vazias e a peça é comum e não é a primeira do caminho
-      if (isMyPiece || (isSequenceEmpty && (!isQueen || isFirst))) return true;
+      if (isMyPiece || (isSequenceEmpty && !isQueen && !isFirst)) return true;
 
       const square = { coord: { x, y }, piece: pieceInSquare, side: [] };
       path.push(square); // adicione a casa ao caminho

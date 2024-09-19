@@ -37,7 +37,9 @@ export class MatchService {
     const isPieceIsFromPlayer = piece.player === player;
     if (!isPieceIsFromPlayer) throw new BadRequestException('A peça não é sua');
 
-    const pieces = await this.pieceRepository.findBy({ match });
+    const pieces = await this.pieceRepository.findBy({
+      match: { uuid: match.uuid },
+    });
 
     return { match, piece, pieces };
   }
