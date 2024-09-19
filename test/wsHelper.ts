@@ -40,13 +40,13 @@ export async function createClient(tokenSus: string | null = 'PAIA') {
     onPaia: (
       e: Parameters<socketPaiado['on']>[0],
       cb?: (...r: any[]) => any[],
-    ) => Promise<any[]>;
+    ) => Promise<any>;
   };
 
-  client.onPaia = (event: any, cb?: (v: any) => any) => {
+  client.onPaia = (event: any, cb?: (...v: any[]) => any) => {
     return new Promise<any>((d) => {
       client.once(event, async (...v: any[]) => {
-        d(cb ? await cb(v) : v);
+        d(cb ? await cb(...v) : v);
       });
     });
   };
