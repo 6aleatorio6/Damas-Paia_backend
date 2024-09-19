@@ -31,7 +31,7 @@ export class MovService {
 
     await this.dataSource.transaction(async (manager) => {
       await manager.update(Piece, piece, { ...mov, isQueen });
-      await manager.delete(Piece, piecesDeads);
+      if (piecesDeads.length) await manager.delete(Piece, piecesDeads);
     });
 
     return { pieceId: piece.id, isQueen, chainOfMotion, piecesDeads };
