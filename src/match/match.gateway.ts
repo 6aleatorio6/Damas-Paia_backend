@@ -62,7 +62,7 @@ export class MatchGateway implements OnGatewayConnection {
       [player1, player2].forEach((socketPlayers, i) => {
         socketPlayers.join(match.uuid);
         socketPlayers.data.matchId = match.uuid;
-        socketPlayers.data.iAmPlayer = i ? 'player1' : 'player2';
+        socketPlayers.data.iAmPlayer = i === 0 ? 'player1' : 'player2';
         socketPlayers.emit('match:init', match, pieces);
       });
     }
@@ -76,7 +76,7 @@ export class MatchGateway implements OnGatewayConnection {
     @MessageBody(ParseIntPipe) pieceId: number,
   ) {
     const data = await this.matchService.getAndValidatePieces(
-      socket.data.userId,
+      socket.data.iAmPlayer,
       socket.data.matchId,
       pieceId,
     );
@@ -87,7 +87,7 @@ export class MatchGateway implements OnGatewayConnection {
   @SubscribeMessage('match:move')
   async move(socket: SocketM, moveDto: MoveDto) {
     const data = await this.matchService.getAndValidatePieces(
-      socket.data.userId,
+      socket.data.iAmPlayer,
       socket.data.matchId,
       moveDto.id,
     );

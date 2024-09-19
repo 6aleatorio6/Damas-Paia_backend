@@ -5,6 +5,7 @@ import { Match, playersEnum } from 'src/match/entities/match.entity';
 import { UUID } from 'crypto';
 import { Piece } from './entities/piece.entity';
 import { User } from 'src/user/entities/user.entity';
+import { Players } from './match';
 
 @Injectable()
 export class MatchService {
@@ -23,15 +24,18 @@ export class MatchService {
     return turnUpdated;
   }
 
-  async getAndValidatePieces(userId: UUID, matchId: UUID, pieceId: number) {
+  async getAndValidatePieces(player: Players, matchId: UUID, pieceId: number) {
     const match = await this.matchRepository.findOneBy({ uuid: matchId });
     if (!match) throw new BadRequestException('Partida não encontrada');
+
+    const isMyTurn = match.turn === player;
+    if (!isMyTurn) throw new BadRequestException('Não é seu turno');
 
     const piece = await this.pieceRepository.findOneBy({ id: pieceId });
     if (!piece) throw new BadRequestException('Peça não encontrada');
 
-    const isPieceIsFromUser = match[piece.player].uuid === userId;
-    if (!isPieceIsFromUser) throw new BadRequestException('A peça não é sua');
+    const isPieceIsFromPlayer = piece.player === player;
+    if (!isPieceIsFromPlayer) throw new BadRequestException('A peça não é sua');
 
     const pieces = await this.pieceRepository.findBy({ match });
 
