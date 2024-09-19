@@ -1,6 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, IsNull, Not, Repository } from 'typeorm';
 import { Match, playersEnum } from 'src/match/entities/match.entity';
 import { UUID } from 'crypto';
 import { Piece } from './entities/piece.entity';
@@ -51,6 +55,29 @@ export class MatchService {
 
     return match;
   }
+
+  async findMatchsByUser(userId: UUID) {
+    const where = { dateEnd: Not(IsNull()), winner: Not(IsNull()) };
+    const result = await this.matchRepository.find({
+      where: [
+        { ...where, player1: { uuid: userId } },
+        { ...where, player2: { uuid: userId } },
+      ],
+      relations: ['player1', 'player2'],
+      select: {
+        player1: { username: true, uuid: true },
+        player2: { username: true, uuid: true },
+        winner: true,
+        winnerStatus: true,
+        dateInit: true,
+        dateEnd: true,
+      },
+    });
+
+    return result.map((m) => ({
+      ...m,
+      youAre: m.player1.uuid === userId ? 'player1' : 'player2',
+    }));
   }
 
   async toogleTurn(match: Match) {
