@@ -18,6 +18,7 @@ import { WsExceptionsFilter } from 'src/common/wsException.filter';
 import { ServerM, SocketM } from './match.d';
 import { MoveDto } from './dto/move.match.dto';
 import { MatchService } from './match.service';
+import { MovService } from './match.mov.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
@@ -25,7 +26,10 @@ import { MatchService } from './match.service';
 export class MatchGateway implements OnGatewayConnection {
   @WebSocketServer() io: ServerM;
 
-  constructor(private readonly matchService: MatchService) {}
+  constructor(
+    private readonly matchService: MatchService,
+    private readonly movService: MovService,
+  ) {}
 
   handleConnection(socket: SocketM) {
     socket.data.userId = socket.request.user.uuid;
@@ -60,15 +64,37 @@ export class MatchGateway implements OnGatewayConnection {
     }
   }
 
-  @SubscribeMessage('match:quit')
-  async leaveMatch(socket: SocketM) {}
-
-  @SubscribeMessage('match:move')
-  async move(socket: SocketM, moveDto: MoveDto) {}
-
   @SubscribeMessage('match:paths')
   async getMove(
     @ConnectedSocket() socket: SocketM,
     @MessageBody(ParseIntPipe) pieceId: number,
-  ) {}
+  ) {
+    const data = await this.matchService.getAndValidatePieces(
+      socket.data.userId,
+      socket.data.matchId,
+      pieceId,
+    );
+
+    return this.movService.getPaths(data.piece, data.pieces);
+  }
+
+  @SubscribeMessage('match:move')
+  async move(socket: SocketM, moveDto: MoveDto) {
+    const data = await this.matchService.getAndValidatePieces(
+      socket.data.userId,
+      socket.data.matchId,
+      moveDto.id,
+    );
+
+    this.io
+      .in(socket.data.matchId)
+      .emit(
+        'match:update',
+        await this.movService.pieceMove(data.piece, data.pieces, moveDto.to),
+        await this.matchService.toogleTurn(data.match),
+      );
+  }
+
+  @SubscribeMessage('match:quit')
+  async leaveMatch(socket: SocketM) {}
 }

@@ -16,6 +16,12 @@ export class MatchService {
     private dataSource: DataSource,
   ) {}
 
+  async toogleTurn(match: Match) {
+    const turnUpdated = match.turn === 'player1' ? 'player2' : 'player1';
+    await this.matchRepository.update(match, { turn: turnUpdated });
+    return turnUpdated;
+  }
+
   async getAndValidatePieces(userId: UUID, matchId: UUID, pieceId: number) {
     const match = await this.matchRepository.findOneBy({ uuid: matchId });
     if (!match) throw new BadRequestException('Partida não encontrada');

@@ -34,7 +34,7 @@ export class MovService {
       await manager.delete(Piece, piecesDeads);
     });
 
-    return { isQueen, chainOfMotion, piecesDeads };
+    return { pieceId: piece.id, isQueen, chainOfMotion, piecesDeads };
   }
 
   /**

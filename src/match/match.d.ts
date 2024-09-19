@@ -23,12 +23,9 @@ interface Square {
 }
 
 interface UpdatePieces {
-  deads: number[];
-  pieceMoved: {
-    id: number;
-    isQueen: boolean;
-    movs: Coord[];
-  };
+  isQueen: boolean;
+  piecesDeads: number[];
+  chainOfMotion: Coord[];
 }
 
 //
@@ -46,7 +43,7 @@ interface SocketData {
 interface ServerToCl {
   'match:init': (matchPaiado: Match, pieces: Omit<Piece, 'match'>[]) => void;
   'match:end': (matchPaiado: Match) => void;
-  'match:update': (updatePieces: UpdatePieces, turn: UUID) => void;
+  'match:update': (updatePieces: UpdatePieces, turn: Players) => void;
   error: (error: Error) => void;
 }
 
