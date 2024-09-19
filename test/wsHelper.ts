@@ -2,8 +2,9 @@ import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
 import { testApp } from 'test/setup';
 import { io, Socket } from 'socket.io-client';
-import { ClientToSv, ServerToCl, UpdatePieces } from 'src/match/match';
+import { ClientToSv, ServerToCl } from 'src/match/match';
 import { Match } from 'src/match/entities/match.entity';
+import { Piece } from 'src/match/entities/piece.entity';
 
 let i = 0;
 async function getToken() {
@@ -59,13 +60,13 @@ export async function createMatch() {
   const client1 = await createClient();
   const client2 = await createClient();
 
-  client1.emit('match:queue', 'join');
+  await client1.emitWithAck('match:queue', 'join');
   client2.emit('match:queue', 'join');
 
   const [matC1, matC2] = (await Promise.all([
     client1.onPaia('match:init'),
     client2.onPaia('match:init'),
-  ])) as [Match, UpdatePieces][];
+  ])) as [Match, Piece[]][];
 
   return { client1, client2, matC1, matC2 };
 }
