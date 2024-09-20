@@ -80,9 +80,9 @@ export class MatchService {
     }));
   }
 
-  async toogleTurn(match: Match) {
-    const turnUpdated = match.turn === 'player1' ? 'player2' : 'player1';
-    await this.matchRepository.update(match, { turn: turnUpdated });
+  async toogleTurn({ turn, uuid }: Match) {
+    const turnUpdated = turn === 'player1' ? 'player2' : 'player1';
+    await this.matchRepository.update({ uuid }, { turn: turnUpdated });
     return turnUpdated;
   }
 

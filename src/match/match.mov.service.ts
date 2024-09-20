@@ -40,7 +40,7 @@ export class MovService {
   /**
    * Retorna um array de coordenadas possíveis para a peça
    */
-  async getPaths(piece: Piece, pieces: Piece[]) {
+  getPaths(piece: Piece, pieces: Piece[]) {
     return this.createPaths(piece, pieces).flatMap((s) => this.flatPaths(s));
   }
 
