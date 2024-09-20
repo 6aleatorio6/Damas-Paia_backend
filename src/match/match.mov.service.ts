@@ -65,8 +65,6 @@ export class MovService {
       const chain = this.createChainSquare(mov, path);
       if (!chain) continue;
 
-      console.log(chain);
-
       const chainOfMotion = chain.filter((c) => !c.piece).map((c) => c.coord);
       const piecesDeads = chain.filter((c) => c.piece).map((c) => c.piece.id);
 
@@ -132,17 +130,16 @@ export class MovService {
     // para cada casa na direção
     this.forEachSquare(cord, direction, ({ x, y }) => {
       const pieceInSquare = pieces.find((p) => p.x === x && p.y === y);
-      const isMyPiece = pieceInSquare?.player === player;
-      // apenas a primeira iteração o prev será undefined, ela é o square logo depois da peça
-      const isPrevSquareEmpty = prev && !prev.piece;
-      const isPrevAndCurrentSquareEmpty = isPrevSquareEmpty && !pieceInSquare;
+      const isMyPieceInCurrentSquare = pieceInSquare?.player === player;
+      // apenas a primeira iteração o prev será undefined
+      const isPrevEmpty = prev && !prev.piece;
 
-      // se o Square atual for uma peça do mesmo player, o caminho termina;
-      // se a Square atual estiver vazia e a anterior também, o caminho termina, exceto se for uma dama
-      if (isMyPiece || (isPrevAndCurrentSquareEmpty && !isQueen)) return true;
+      // se a casa atual tiver uma peça do mesmo player, o caminho termina;
+      // se a casa anterior estiver vazia e a peça não for dama, o caminho termina sem adicionar a casa ao caminho
+      if ((isPrevEmpty && !isQueen) || isMyPieceInCurrentSquare) return true;
 
       const square = { coord: { x, y }, piece: pieceInSquare, side: [] };
-      path.push(square); // adicione a casa ao caminho
+      path.push(square);
       prev = square;
 
       const isPieceCapture = prev?.piece && !square.piece;
