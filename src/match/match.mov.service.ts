@@ -45,12 +45,12 @@ export class MovService {
   }
 
   /**
-   * Achata os lados(side) dos caminhos no array principal, formando um array das coordenadas possíveis
+   * Achata o camino em um array de coordenadas e filtra as coordenadas que contém peças
    */
-  private flatPaths(paths: Square[], coords = []): Omit<Square, 'side'>[] {
+  private flatPaths(paths: Square[], coords = []): Coord[] {
     for (const path of paths) {
       const { side, coord } = path;
-      coords.push(coord);
+      if (!path?.piece) coords.push(coord);
       if (side.length) this.flatPaths(path.side, coords);
     }
     return coords;
