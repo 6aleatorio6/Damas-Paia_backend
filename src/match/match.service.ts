@@ -115,14 +115,15 @@ export class MatchService {
 
   async createMatchAndPieces(player1Id: UUID, player2Id: UUID) {
     return this.dataSource.transaction(async (manager) => {
-      const u1 = await manager.existsBy(User, { uuid: player1Id });
-      const u2 = await manager.existsBy(User, { uuid: player2Id });
-      if (!u1 || !u2) throw new BadRequestException('Usuário não encontrado');
-
-      const match = this.matchRepository.create({
-        player1: { uuid: player1Id },
-        player2: { uuid: player2Id },
+      const [player1, player2] = await manager.find(User, {
+        select: { username: true, uuid: true },
+        where: [{ uuid: player1Id }, { uuid: player2Id }],
       });
+
+      if (!player1 || !player2)
+        throw new BadRequestException('Usuário não encontrado');
+
+      const match = this.matchRepository.create({ player1, player2 });
       await manager.save(match);
 
       const pieces = this._createPieces(match);

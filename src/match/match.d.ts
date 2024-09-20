@@ -6,9 +6,6 @@ import { UUID } from 'crypto';
 import { User } from 'src/user/entities/user.entity';
 import { MoveDto } from './dto/move.match.dto';
 
-// Match
-type MatchInfo = { match: Match; pieces: Piece[] };
-
 //
 //
 // MatchService
@@ -41,7 +38,7 @@ interface SocketData {
 
 // EMIT
 interface ServerToCl {
-  'match:init': (matchPaiado: Match, pieces: Omit<Piece, 'match'>[]) => void;
+  'match:init': (matchPaiado: Match, pieces: Piece[], youAre: Players) => void;
   'match:finish': (matchPaiado: Match) => void;
   'match:update': (updatePieces: UpdatePieces, turn: Players) => void;
   error: (error: Error) => void;

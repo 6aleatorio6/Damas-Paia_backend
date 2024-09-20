@@ -60,10 +60,11 @@ export class MatchGateway implements OnGatewayConnection {
       );
 
       [player1, player2].forEach((socketPlayers, i) => {
+        const iAmPlayer = i === 0 ? 'player1' : 'player2';
         socketPlayers.join(match.uuid);
         socketPlayers.data.matchId = match.uuid;
-        socketPlayers.data.iAmPlayer = i === 0 ? 'player1' : 'player2';
-        socketPlayers.emit('match:init', match, pieces);
+        socketPlayers.data.iAmPlayer = iAmPlayer;
+        socketPlayers.emit('match:init', match, pieces, iAmPlayer);
       });
     }
 
