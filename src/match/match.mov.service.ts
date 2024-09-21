@@ -48,7 +48,6 @@ export class MovService {
    * Achata o camino em um array de coordenadas e filtra as coordenadas que contém peças
    */
   private flatPaths(paths: Square[], coords = []): Coord[] {
-    console.log(paths);
     for (const path of paths) {
       const { side, coord } = path;
 
@@ -122,7 +121,7 @@ export class MovService {
    *  obs: camimnho(path) nesse contexto é um array de casas(Square) onde a peça pode se mover
    */
   private createPath(
-    { player, isQueen, ...cord }: Omit<Piece, 'id' | 'match'>,
+    { isQueen, player, ...cord }: Omit<Piece, 'id' | 'match'>,
     pieces: Piece[],
     direction: DMap,
     isSide = false,
@@ -135,36 +134,41 @@ export class MovService {
       const squareCurrent = { coord: { x, y }, piece: pieceInSquare, side: [] };
       const squarePrev = path.at(-1);
 
-      // verifica se a peça na casa é do mesmo jogador
-      const isMyPieceInCurrentSquare = squareCurrent.piece?.player === player;
-      if (isMyPieceInCurrentSquare) return true;
+      // Verifica se a peça na casa atual é do mesmo jogador
+      if (squareCurrent?.piece?.player === player) return true;
 
-      if (isSide) {
-        const firstSquare = path.length === 0 && !squareCurrent?.piece;
-        if (firstSquare) return true;
+      // verifica se o primeiro Square é um movimento válido
+      if (path.length === 0) {
+        // se for lateral e a não tem peça, termina o loop
+        if (isSide && !squareCurrent.piece) return true;
+
+        // se for dama, adiciona a casa ao caminho e continua o loop
+        // se não for dama, adiciona a casa ao caminho e termina o loop
+        if (!squareCurrent.piece) {
+          path.push(squareCurrent);
+          return isQueen ? false : true;
+        }
       }
 
-      // só começa a verificar na segunda iteração, quando já tem uma casa no caminho
-      if (squarePrev) {
-        // verifica se a primeira casa do caminho de uma peça comum está vazia, se sim, o caminho é interrompido
-        // isso impedirá que a peça comum se capture uma peça sem estar perto
-        const firstSquare = path[0];
-        if (!firstSquare?.piece && !isQueen) return true;
-        // // verifica se a ultima e a atual square(Casas) estão vazias, se sim, o caminho é interrompido.
-        // // exceto para a dama que pode andar livremente
-        const isPrevAndCurrentEmpty = !squarePrev.piece && !squareCurrent.piece;
-        if (isPrevAndCurrentEmpty && !isQueen) return true;
-        // verifica se a ultima e a atual square(Casas) tem peças, se sim, o caminho é interrompido
-        const isPrevAndCurrentPiece = squarePrev.piece && squareCurrent.piece;
-        if (isPrevAndCurrentPiece) return true;
+      // Verifica se o caminho deve ser interrompido após a primeira casa
+      if (path.length > 0) {
+        // Verifica se ambas as casas estão vazias e a peça não é uma dama
+        const isBothEmpty = !squarePrev?.piece && !squareCurrent.piece && !isQueen;
+        // Verifica se ambas as casas possuem peças
+        const isBothOccupied = squarePrev?.piece && squareCurrent.piece;
+        if (isBothEmpty || isBothOccupied) return true;
       }
 
+      // Adiciona a casa ao caminho
       path.push(squareCurrent);
 
+      // Verifica se há captura
       const isCaptured = squarePrev?.piece && !squareCurrent.piece;
       if (!isCaptured) return;
+
+      // Verifica caminhos laterais
       this.forEachSide(direction, (dire2) => {
-        const side = this.createPath({ x, y, player }, pieces, dire2, true);
+        const side = this.createPath({ player, x, y }, pieces, dire2, true);
         if (side.length) squareCurrent.side.push(side);
       });
     });
