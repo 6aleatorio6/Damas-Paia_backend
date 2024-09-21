@@ -16,7 +16,7 @@ interface Coord {
 interface Square {
   coord: Coord;
   piece?: Piece;
-  side?: Square[];
+  side?: Square[][]; // side é um array de path
 }
 
 interface UpdatePieces {

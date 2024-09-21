@@ -48,10 +48,12 @@ export class MovService {
    * Achata o camino em um array de coordenadas e filtra as coordenadas que contém peças
    */
   private flatPaths(paths: Square[], coords = []): Coord[] {
+    console.log(paths);
     for (const path of paths) {
       const { side, coord } = path;
+
       if (!path?.piece) coords.push(coord);
-      if (side.length) this.flatPaths(path.side, coords);
+      if (side?.length) side.forEach((s) => this.flatPaths(s, coords));
     }
     return coords;
   }
@@ -123,6 +125,7 @@ export class MovService {
     { player, isQueen, ...cord }: Omit<Piece, 'id' | 'match'>,
     pieces: Piece[],
     direction: DMap,
+    isSide = false,
   ) {
     const path: Square[] = [];
 
@@ -136,18 +139,21 @@ export class MovService {
       const isMyPieceInCurrentSquare = squareCurrent.piece?.player === player;
       if (isMyPieceInCurrentSquare) return true;
 
+      if (isSide) {
+        const firstSquare = path.length === 0 && !squareCurrent?.piece;
+        if (firstSquare) return true;
+      }
+
       // só começa a verificar na segunda iteração, quando já tem uma casa no caminho
       if (squarePrev) {
         // verifica se a primeira casa do caminho de uma peça comum está vazia, se sim, o caminho é interrompido
         // isso impedirá que a peça comum se capture uma peça sem estar perto
         const firstSquare = path[0];
         if (!firstSquare?.piece && !isQueen) return true;
-
-        // verifica se a ultima e a atual square(Casas) estão vazias, se sim, o caminho é interrompido.
-        // exceto para a dama que pode andar livremente
+        // // verifica se a ultima e a atual square(Casas) estão vazias, se sim, o caminho é interrompido.
+        // // exceto para a dama que pode andar livremente
         const isPrevAndCurrentEmpty = !squarePrev.piece && !squareCurrent.piece;
         if (isPrevAndCurrentEmpty && !isQueen) return true;
-
         // verifica se a ultima e a atual square(Casas) tem peças, se sim, o caminho é interrompido
         const isPrevAndCurrentPiece = squarePrev.piece && squareCurrent.piece;
         if (isPrevAndCurrentPiece) return true;
@@ -158,9 +164,8 @@ export class MovService {
       const isCaptured = squarePrev?.piece && !squareCurrent.piece;
       if (!isCaptured) return;
       this.forEachSide(direction, (dire2) => {
-        squareCurrent.side.push(
-          this.createPath({ x, y, player }, pieces, dire2),
-        ); // adicione os caminhos laterais ao caminho
+        const side = this.createPath({ x, y, player }, pieces, dire2, true);
+        if (side.length) squareCurrent.side.push(side);
       });
     });
 
