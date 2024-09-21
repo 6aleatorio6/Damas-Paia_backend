@@ -144,15 +144,26 @@ export class MovService {
 
       const isPieceCapture = prev?.piece && !square.piece;
       if (!isPieceCapture) return; // se não capturou peça, pule para a próxima iteração
-      const upOrDown = direction.includes('up') ? 'up' : 'down'; // obtém a direção vertical oposta
-      for (const dire2 of Object.keys(direction) as DMap[]) {
-        // se a direção2 for a mesma que a direção atual ou se a direção2 for a direção oposta da atual, pule a iteração
-        if (dire2.includes(upOrDown) || dire2 === direction) continue;
+
+      this.forEachSide(direction, (dire2) => {
         square.side.push(this.createPath({ x, y, player }, pieces, dire2)); // adicione os caminhos laterais ao caminho
-      }
+      });
     });
 
     return path;
+  }
+
+  private forEachSide(dire: DMap, cb: (coord: DMap) => boolean | void) {
+    const direR =
+      (dire.includes('up') ? 'down' : 'up') + // obtém a direção vertical oposta
+      (dire.includes('Right') ? 'Left' : 'Right'); // obtém a direção horizontal oposta
+
+    const direKeys = Object.keys(directions) as DMap[];
+    const sides = direKeys.filter((d) => ![direR, dire].includes(d));
+
+    for (const dire2 of sides) {
+      if (cb(dire2 as DMap)) break;
+    }
   }
 
   /**
