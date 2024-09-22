@@ -100,14 +100,13 @@ export class MatchGateway implements OnGatewayConnection {
     );
     this.io.in(socket.data.matchId).emit('match:update', moveResult);
 
-    const piecesLenght = {
-      player1: data.pieces.filter((p) => p.player === 'player1').length,
-      player2: data.pieces.filter((p) => p.player === 'player2').length,
-    };
-    piecesLenght[socket.data.iAmPlayer] -= moveResult.piecesDeads.length;
     this.io
       .in(socket.data.matchId)
-      .emit('match:status', await this.matchService.toogleTurn(data.match), piecesLenght);
+      .emit(
+        'match:status',
+        await this.matchService.toogleTurn(data.match),
+        await this.matchService.piecesCount(data.match.uuid),
+      );
   }
 
   @SubscribeMessage('match:quit')

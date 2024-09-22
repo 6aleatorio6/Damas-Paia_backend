@@ -24,6 +24,18 @@ export class MatchService {
     private dataSource: DataSource,
   ) {}
 
+  async piecesCount(matchId: UUID) {
+    const countPieces = await this.pieceRepository
+      .createQueryBuilder('piece')
+      .where('piece.matchUuid = :matchId', { matchId })
+      .groupBy('piece.player')
+      .select('COUNT(piece.id)', 'count')
+      .addSelect('piece.player', 'player')
+      .getRawMany();
+
+    return Object.fromEntries(countPieces.map((c) => [c.player, +c.count]));
+  }
+
   async setWinner(matchId: UUID, loser: Players, status: WinnerStatus) {
     const match = await this.matchRepository.findOne({
       where: { uuid: matchId, winner: IsNull() },
