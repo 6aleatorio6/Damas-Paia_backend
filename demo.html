@@ -91,6 +91,12 @@
         color: gray;
       }
 
+      #pieceCount1,
+      #pieceCount2 {
+        font-size: 14px;
+        color: gray;
+      }
+
       #userForm {
         display: flex;
         flex-direction: column;
@@ -114,10 +120,23 @@
         color: white;
         border: none;
         cursor: pointer;
+        margin: 5px;
       }
 
       #userForm button:hover {
         background-color: #45a049;
+      }
+
+      #alert {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: red;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        display: none;
       }
     </style>
   </head>
@@ -126,10 +145,12 @@
       <div id="player1Info">
         <span id="player1Name"></span>
         <span id="player1Turn"></span>
+        <span id="pieceCount1">Peças: 0</span>
       </div>
       <div id="player2Info">
         <span id="player2Name"></span>
         <span id="player2Turn"></span>
+        <span id="pieceCount2">Peças: 0</span>
       </div>
     </div>
 
@@ -142,8 +163,12 @@
       <input type="email" id="email" name="email" required /><br />
       <label for="password">Password:</label>
       <input type="password" id="password" name="password" required /><br />
-      <button type="submit">Criar Usuario</button>
+      <button type="button" id="entrarNafila">
+        criar conta | logar | entrar na fila
+      </button>
     </form>
+
+    <div id="alert"></div>
 
     <script
       src="https://cdn.socket.io/4.7.5/socket.io.min.js"
@@ -165,8 +190,7 @@
 
       // Definindo valores aleatórios nos campos do formulário
       document.getElementById('username').value = generateRandomValue();
-      document.getElementById('email').value =
-        generateRandomValue() + '@example.com';
+      document.getElementById('email').value = generateRandomValue() + '@example.com';
       document.getElementById('password').value = generateRandomValue();
 
       // Função para criar um usuário
@@ -179,8 +203,10 @@
             },
             body: JSON.stringify(user),
           });
+          if (!response.ok) throw await response.json();
         } catch (error) {
           console.error('Error creating user:', error);
+          showAlert(error);
         }
       }
 
@@ -196,9 +222,11 @@
           });
           const data = await response.json();
           console.log('Login successful:', data);
+          if (!response.ok) throw data;
           return data.token;
         } catch (error) {
           console.error('Error logging in:', error);
+          showAlert(error);
         }
       }
 
@@ -295,6 +323,7 @@
 
         socket.on('error', (error) => {
           console.error('Error:', error);
+          showAlert(error);
         });
 
         let iAm;
@@ -317,6 +346,11 @@
             match[iAm.includes(1) ? 'player2' : 'player1'].username;
           player2Name.style.color = 'red';
 
+          updatePieceCounts({
+            player1: pieces.filter((piece) => piece.player === 'player1').length,
+            player2: pieces.filter((piece) => piece.player === 'player2').length,
+          });
+
           if (iAm === match.turn) {
             player1Turn.textContent = 'Sua vez';
             player2Turn.textContent = '';
@@ -326,7 +360,18 @@
           }
         });
 
-        socket.on('match:update', (updatePieces, turnPlayer) => {
+        socket.on('match:status', (turn, pieceLength) => {
+          updatePieceCounts(pieceLength);
+          if (iAm === turn) {
+            player1Turn.textContent = 'Sua vez';
+            player2Turn.textContent = '';
+          } else {
+            player1Turn.textContent = '';
+            player2Turn.textContent = 'vez do adversário';
+          }
+        });
+
+        socket.on('match:update', (updatePieces) => {
           document.querySelectorAll('.piece').forEach((piece) => {
             id = +piece.getAttribute('data-id');
             if (updatePieces.piecesDeads.includes(id)) {
@@ -344,32 +389,38 @@
 
             if (updatePieces.isQueen) piece.style.backgroundColor = 'yellow';
           });
-
-          if (iAm === turnPlayer) {
-            player1Turn.textContent = 'Sua vez';
-            player2Turn.textContent = '';
-          } else {
-            player1Turn.textContent = '';
-            player2Turn.textContent = 'vez do adversário';
-          }
         });
       }
 
+      function updatePieceCounts(pieceLength) {
+        const pieceCount1 = document.getElementById('pieceCount1');
+        const pieceCount2 = document.getElementById('pieceCount2');
+        pieceCount1.textContent = `Peças: ${pieceLength.player1}`;
+        pieceCount2.textContent = `Peças: ${pieceLength.player2}`;
+      }
+
+      function showAlert({ message }) {
+        const alert = document.getElementById('alert');
+        alert.textContent = message;
+        alert.style.display = 'block';
+        setTimeout(() => {
+          alert.style.display = 'none';
+        }, 2000);
+      }
+
       // Chamando as funções quando necessário
-      document
-        .getElementById('userForm')
-        .addEventListener('submit', async (event) => {
-          event.preventDefault();
-          const username = document.getElementById('username').value;
-          const email = document.getElementById('email').value;
-          const password = document.getElementById('password').value;
-          const user = { username, email, password };
-          const createdUser = await createUser(user);
-          const token = await login(user);
-          if (token) {
-            connectToServer(token);
-          }
-        });
+      document.getElementById('entrarNafila').addEventListener('click', async () => {
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const user = { username, email, password };
+        await createUser(user);
+        const token = await login(user);
+
+        if (token) {
+          connectToServer(token);
+        }
+      });
 
       createBoard();
     </script>
