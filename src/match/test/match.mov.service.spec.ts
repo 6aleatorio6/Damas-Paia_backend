@@ -25,7 +25,9 @@ type MovTest = [
   {
     pieces: (Coord & { player: Players })[];
     piece: Omit<Piece, 'match' | 'id'>;
-    mov: Coord[];
+    movs: Coord[];
+    move: Coord;
+    chainOfMotion: Coord[];
   },
 ];
 
@@ -35,10 +37,12 @@ const movTest: MovTest[] = [
     {
       pieces: [],
       piece: { player: 'player1', x: 1, y: 2 },
-      mov: [
+      movs: [
         { x: 2, y: 3 },
         { x: 0, y: 3 },
       ],
+      move: { x: 2, y: 3 },
+      chainOfMotion: [{ x: 2, y: 3 }],
     },
   ],
   [
@@ -46,10 +50,12 @@ const movTest: MovTest[] = [
     {
       pieces: [],
       piece: { player: 'player2', x: 1, y: 2 },
-      mov: [
+      movs: [
         { x: 0, y: 1 },
         { x: 2, y: 1 },
       ],
+      move: { x: 0, y: 1 },
+      chainOfMotion: [{ x: 0, y: 1 }],
     },
   ],
   [
@@ -57,7 +63,7 @@ const movTest: MovTest[] = [
     {
       pieces: [],
       piece: { player: 'player1', x: 1, y: 6, isQueen: true },
-      mov: [
+      movs: [
         { x: 2, y: 7 },
         { x: 0, y: 7 },
         { x: 2, y: 5 },
@@ -68,6 +74,15 @@ const movTest: MovTest[] = [
         { x: 7, y: 0 },
         { x: 0, y: 5 },
       ],
+      move: { x: 7, y: 0 },
+      chainOfMotion: [
+        { x: 2, y: 5 },
+        { x: 3, y: 4 },
+        { x: 4, y: 3 },
+        { x: 5, y: 2 },
+        { x: 6, y: 1 },
+        { x: 7, y: 0 },
+      ],
     },
   ],
   [
@@ -75,7 +90,9 @@ const movTest: MovTest[] = [
     {
       pieces: [{ player: 'player1', x: 2, y: 3 }],
       piece: { player: 'player1', x: 1, y: 2 },
-      mov: [{ x: 0, y: 3 }],
+      movs: [{ x: 0, y: 3 }],
+      move: { x: 0, y: 3 },
+      chainOfMotion: [{ x: 0, y: 3 }],
     },
   ],
   [
@@ -83,10 +100,12 @@ const movTest: MovTest[] = [
     {
       pieces: [{ player: 'player2', x: 2, y: 3 }],
       piece: { player: 'player1', x: 1, y: 2 },
-      mov: [
+      movs: [
         { x: 3, y: 4 },
         { x: 0, y: 3 },
       ],
+      move: { x: 3, y: 4 },
+      chainOfMotion: [{ x: 3, y: 4 }],
     },
   ],
   [
@@ -94,10 +113,12 @@ const movTest: MovTest[] = [
     {
       pieces: [{ player: 'player2', x: 3, y: 4 }],
       piece: { player: 'player1', x: 1, y: 2 },
-      mov: [
+      movs: [
         { x: 2, y: 3 },
         { x: 0, y: 3 },
       ],
+      move: { x: 2, y: 3 },
+      chainOfMotion: [{ x: 2, y: 3 }],
     },
   ],
   [
@@ -108,10 +129,15 @@ const movTest: MovTest[] = [
         { player: 'player2', x: 4, y: 5 },
       ],
       piece: { player: 'player1', x: 1, y: 2 },
-      mov: [
+      movs: [
         { x: 3, y: 4 },
         { x: 5, y: 6 },
         { x: 0, y: 3 },
+      ],
+      move: { x: 5, y: 6 },
+      chainOfMotion: [
+        { x: 3, y: 4 },
+        { x: 5, y: 6 },
       ],
     },
   ],
@@ -124,15 +150,36 @@ const movTest: MovTest[] = [
         { player: 'player2', x: 6, y: 5 },
       ],
       piece: { player: 'player1', x: 1, y: 2 },
-      mov: [
+      movs: [
         { x: 3, y: 4 },
         { x: 5, y: 6 },
         { x: 7, y: 4 },
         { x: 0, y: 3 },
       ],
+      move: { x: 7, y: 4 },
+      chainOfMotion: [
+        { x: 3, y: 4 },
+        { x: 5, y: 6 },
+        { x: 7, y: 4 },
+      ],
+    },
+  ],
+  [
+    'uma peça comum pode voltar uma casa se for captura',
+    {
+      pieces: [{ player: 'player2', x: 1, y: 2 }],
+      piece: { player: 'player1', x: 2, y: 3 },
+      movs: [
+        { x: 3, y: 4 },
+        { x: 1, y: 4 },
+        { x: 0, y: 1 },
+      ],
+      move: { x: 1, y: 4 },
+      chainOfMotion: [{ x: 1, y: 4 }],
     },
   ],
 ];
+// dica: use slice(-1) para testar apenas o último caso
 
 describe('PieceMatchService', () => {
   let movService: MovService;
@@ -146,15 +193,33 @@ describe('PieceMatchService', () => {
   });
 
   describe('getPaths', () => {
-    describe('Verificar se os caminhos possiveis estão corretos', () => {
-      it.each(movTest)('%s', async (_, { pieces, piece, mov }) => {
-        const paths = movService.getPaths(
-          piece as any,
-          pieces.map((p) => ({ id: 1, match, isQueen: false, ...p })),
-        );
+    it.each(movTest)('%s', async (_, { pieces, piece, movs }) => {
+      const paths = movService.getPaths(
+        piece as any,
+        pieces.map((p) => ({ id: 1, match, isQueen: false, ...p })),
+      );
 
-        expect(paths).toEqual(mov);
+      expect(paths).toEqual(movs);
+    });
+  });
+
+  describe('pieceMove', () => {
+    it.each(movTest)('%s', async (_, { pieces, piece, move, chainOfMotion }) => {
+      const paths = await movService.pieceMove(
+        { ...piece, id: 1, match },
+        pieces.map((p) => ({ id: 1, match, isQueen: false, ...p })),
+        move,
+      );
+
+      expect(paths).toEqual({
+        isQueen: paths.isQueen,
+        chainOfMotion,
+        piecesDeads: expect.any(Array),
+        pieceId: 1,
       });
+      if (paths.piecesDeads.length) {
+        expect(paths.piecesDeads).toHaveLength(chainOfMotion.length);
+      }
     });
   });
 });
