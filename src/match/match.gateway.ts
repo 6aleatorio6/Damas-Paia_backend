@@ -104,6 +104,7 @@ export class MatchGateway implements OnGatewayConnection {
       player1: data.pieces.filter((p) => p.player === 'player1').length,
       player2: data.pieces.filter((p) => p.player === 'player2').length,
     };
+    piecesLenght[socket.data.iAmPlayer] -= moveResult.piecesDeads.length;
     this.io
       .in(socket.data.matchId)
       .emit('match:status', await this.matchService.toogleTurn(data.match), piecesLenght);
