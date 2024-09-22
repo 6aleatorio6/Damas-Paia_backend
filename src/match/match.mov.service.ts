@@ -85,15 +85,23 @@ export class MovService {
     path: Square[],
     chain: Square[] = [],
   ): Square[] | null {
-    for (const square of path) {
-      const isFound = square.coord.x === coord.x && square.coord.y === coord.y;
-      if (isFound) return chain.push(square) && chain;
-      if (!square?.side.length) continue;
+    const aux = [];
 
-      const node = [...chain, square];
-      const result = this.createChainSquare(coord, square.side, node);
-      return result.length === node.length ? null : result;
+    for (const square of path) {
+      aux.push(square);
+
+      const isFound = square.coord.x === coord.x && square.coord.y === coord.y;
+      if (isFound) return [...chain, ...aux];
+
+      if (!square.side?.length) continue;
+      const resultSides = square.side.map((s) =>
+        this.createChainSquare(coord, s, [...chain, ...aux]),
+      );
+      const result = resultSides.find((r) => r);
+      if (result) return result;
     }
+
+    return null;
   }
 
   /**
