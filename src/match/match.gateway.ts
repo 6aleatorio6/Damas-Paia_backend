@@ -93,13 +93,20 @@ export class MatchGateway implements OnGatewayConnection {
       moveDto.id,
     );
 
+    const moveResult = await this.movService.pieceMove(
+      data.piece,
+      data.pieces,
+      moveDto.to,
+    );
+    this.io.in(socket.data.matchId).emit('match:update', moveResult);
+
+    const piecesLenght = {
+      player1: data.pieces.filter((p) => p.player === 'player1').length,
+      player2: data.pieces.filter((p) => p.player === 'player2').length,
+    };
     this.io
       .in(socket.data.matchId)
-      .emit(
-        'match:update',
-        await this.movService.pieceMove(data.piece, data.pieces, moveDto.to),
-        await this.matchService.toogleTurn(data.match),
-      );
+      .emit('match:status', await this.matchService.toogleTurn(data.match), piecesLenght);
   }
 
   @SubscribeMessage('match:quit')

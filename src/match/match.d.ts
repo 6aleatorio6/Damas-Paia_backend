@@ -41,7 +41,8 @@ interface SocketData {
 interface ServerToCl {
   'match:init': (matchPaiado: Match, pieces: Piece[], youAre: Players) => void;
   'match:finish': (matchPaiado: Match) => void;
-  'match:update': (updatePieces: UpdatePieces, turn: Players) => void;
+  'match:update': (updatePieces: UpdatePieces) => void;
+  'match:status': (turn: Players, piecesLenght: Record<Players, number>) => void;
   error: (error: Error) => void;
 }
 
