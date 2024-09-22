@@ -20,6 +20,7 @@ interface Square {
 }
 
 interface UpdatePieces {
+  pieceId: number;
   isQueen: boolean;
   piecesDeads: number[];
   chainOfMotion: Coord[];
