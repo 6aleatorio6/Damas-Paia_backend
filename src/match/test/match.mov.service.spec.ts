@@ -33,7 +33,7 @@ type MovTest = [
 
 const movTest: MovTest[] = [
   [
-    'caminhos da frente livre - player1',
+    'caminho livre à frente - player1',
     {
       pieces: [],
       piece: { player: 'player1', x: 1, y: 2 },
@@ -46,7 +46,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'caminhos da frente livre - player2',
+    'caminho livre à frente - player2',
     {
       pieces: [],
       piece: { player: 'player2', x: 1, y: 2 },
@@ -59,7 +59,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'caminho livre da rainha',
+    'movimento livre da rainha',
     {
       pieces: [],
       piece: { player: 'player1', x: 1, y: 6, isQueen: true },
@@ -86,7 +86,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'um caminho bloqueado por uma peça do mesmo jogador',
+    'bloqueio por peça do mesmo jogador',
     {
       pieces: [{ player: 'player1', x: 2, y: 3 }],
       piece: { player: 'player1', x: 1, y: 2 },
@@ -96,7 +96,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'pode capturar uma peça',
+    'captura de peça adversária',
     {
       pieces: [{ player: 'player2', x: 2, y: 3 }],
       piece: { player: 'player1', x: 1, y: 2 },
@@ -109,7 +109,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'tem uma peça inimiga uma casa a frente',
+    'peça adversária à frente',
     {
       pieces: [{ player: 'player2', x: 3, y: 4 }],
       piece: { player: 'player1', x: 1, y: 2 },
@@ -122,7 +122,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'Uma peça comum pode capturar 2 peças em linha reta',
+    'captura de 2 peças em linha reta',
     {
       pieces: [
         { player: 'player2', x: 2, y: 3 },
@@ -142,7 +142,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'Uma cadeia de captura que pega um caminho lateral',
+    'captura com desvio lateral',
     {
       pieces: [
         { player: 'player2', x: 2, y: 3 },
@@ -165,7 +165,7 @@ const movTest: MovTest[] = [
     },
   ],
   [
-    'uma peça comum pode voltar uma casa se for captura',
+    'captura para trás',
     {
       pieces: [{ player: 'player2', x: 1, y: 2 }],
       piece: { player: 'player1', x: 2, y: 3 },
@@ -178,7 +178,29 @@ const movTest: MovTest[] = [
       chainOfMotion: [{ x: 1, y: 4 }],
     },
   ],
+  [
+    'captura em cadeia de peça adversária com dama',
+    {
+      pieces: [
+        { player: 'player1', x: 3, y: 6 },
+        { player: 'player1', x: 3, y: 4 },
+        { player: 'player1', x: 6, y: 3 },
+        { player: 'player2', x: 1, y: 6 },
+      ],
+      piece: { player: 'player2', x: 2, y: 7, isQueen: true },
+      movs: [
+        { x: 4, y: 5 },
+        { x: 2, y: 3 },
+      ],
+      move: { x: 2, y: 3 },
+      chainOfMotion: [
+        { x: 4, y: 5 },
+        { x: 2, y: 3 },
+      ],
+    },
+  ],
 ];
+
 // dica: use slice(-1) para testar apenas o último caso
 
 describe('PieceMatchService', () => {
