@@ -85,17 +85,17 @@ export class MovService {
     path: Square[],
     chain: Square[] = [],
   ): Square[] | null {
-    const aux = [];
+    const pathAccum: Square[] = [];
 
     for (const square of path) {
-      aux.push(square);
+      pathAccum.push(square);
 
       const isFound = square.coord.x === coord.x && square.coord.y === coord.y;
-      if (isFound) return [...chain, ...aux];
+      if (isFound) return [...chain, ...pathAccum];
 
       if (!square.side?.length) continue;
       const resultSides = square.side.map((s) =>
-        this.createChainSquare(coord, s, [...chain, ...aux]),
+        this.createChainSquare(coord, s, [...chain, ...pathAccum]),
       );
       const result = resultSides.find((r) => r);
       if (result) return result;
@@ -161,10 +161,15 @@ export class MovService {
       // Verifica se o caminho deve ser interrompido após a primeira casa
       if (path.length > 0) {
         // Verifica se ambas as casas estão vazias e a peça não é uma dama
-        const isBothEmpty = !squarePrev?.piece && !squareCurrent.piece && !isQueen;
+        const isBothEmpty = !squarePrev?.piece && !squareCurrent.piece;
         // Verifica se ambas as casas possuem peças
         const isBothOccupied = squarePrev?.piece && squareCurrent.piece;
-        if (isBothEmpty || isBothOccupied) return true;
+
+        // Verifica se é o fim de uma cadeia de captura.
+        // Necessario para não deixar uma dama andar varias casas após a captura
+        const isEndChain = isBothEmpty && path.find((p) => p.piece);
+
+        if ((isBothEmpty && !isQueen) || isBothOccupied || isEndChain) return true;
       }
 
       // Adiciona a casa ao caminho
