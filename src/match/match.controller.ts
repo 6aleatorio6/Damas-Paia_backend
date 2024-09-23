@@ -1,10 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
 import { MatchService } from './match.service';
 import { ReqUser } from 'src/auth/custom.decorator';
+import { MatchQueueService } from './match.queue.service';
 
 @Controller('match')
 export class MatchController {
-  constructor(private readonly matchService: MatchService) {}
+  constructor(
+    private readonly matchService: MatchService,
+    private readonly matchQueueService: MatchQueueService,
+  ) {}
 
   @Get('user')
   findAllByUser(@ReqUser() user) {
@@ -13,6 +17,6 @@ export class MatchController {
 
   @Get('is-in-match')
   async isInMatch(@ReqUser() user) {
-    return { isInMatch: await this.matchService.isUserInMatch(user.uuid) };
+    return { isInMatch: await this.matchQueueService.isUserInMatch(user.uuid) };
   }
 }

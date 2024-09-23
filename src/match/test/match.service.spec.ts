@@ -1,16 +1,16 @@
 import { TestBed } from '@automock/jest';
-import { MatchService } from '../match.service';
 import { Piece } from '../entities/piece.entity';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { MatchQueueService } from '../match.queue.service';
 
-describe('MatchService', () => {
-  let matchService: MatchService;
+describe('MatchQueueService', () => {
+  let matchQueueService: MatchQueueService;
   let piecesRepoMock: jest.Mocked<Repository<Piece>>;
 
   beforeEach(() => {
-    const { unit, unitRef } = TestBed.create(MatchService).compile();
-    matchService = unit;
+    const { unit, unitRef } = TestBed.create(MatchQueueService).compile();
+    matchQueueService = unit;
     piecesRepoMock = unitRef.get(getRepositoryToken(Piece).toString());
 
     piecesRepoMock.create.mockImplementation((x: any) => x);
@@ -24,14 +24,14 @@ describe('MatchService', () => {
     } as any;
 
     it('deve criar as peças de um jogo', async () => {
-      const pieces = matchService['_createPieces'](match);
+      const pieces = matchQueueService['_createPieces'](match);
 
       expect(pieces).toHaveLength(24);
       expect(piecesRepoMock.create).toHaveBeenCalledTimes(24);
     });
 
     it('deve atribuir a partida e o jogador corretos a cada peça', async () => {
-      const pieces = matchService['_createPieces'](match);
+      const pieces = matchQueueService['_createPieces'](match);
 
       const pP2Length = pieces.filter(({ player }) => player === 'player2');
       expect(pP2Length.length).toBe(12);
@@ -41,7 +41,7 @@ describe('MatchService', () => {
     });
 
     it('deve verificar cada coordenada das peças do player 1', async () => {
-      const pieces = matchService._createPieces(match);
+      const pieces = matchQueueService._createPieces(match);
 
       expect(pieces).toEqual(
         expect.arrayContaining([
@@ -61,7 +61,7 @@ describe('MatchService', () => {
     });
 
     it('deve verificar cada coordenada das peças do player 2', async () => {
-      const pieces = matchService._createPieces(match);
+      const pieces = matchQueueService._createPieces(match);
 
       expect(pieces).toEqual(
         expect.arrayContaining([

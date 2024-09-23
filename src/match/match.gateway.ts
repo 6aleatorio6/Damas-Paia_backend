@@ -19,6 +19,7 @@ import { ServerM, SocketM } from './match.d';
 import { MoveDto } from './dto/move.match.dto';
 import { MatchService } from './match.service';
 import { MovService } from './match.mov.service';
+import { MatchQueueService } from './match.queue.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
@@ -29,6 +30,7 @@ export class MatchGateway implements OnGatewayConnection {
   constructor(
     private readonly matchService: MatchService,
     private readonly movService: MovService,
+    private readonly matchQueueService: MatchQueueService,
   ) {}
 
   handleConnection(socket: SocketM) {
@@ -45,28 +47,13 @@ export class MatchGateway implements OnGatewayConnection {
       return 'Você saiu da fila';
     }
 
-    const isInMatch = await this.matchService.isUserInMatch(socket.data.userId);
+    const isInMatch = await this.matchQueueService.isUserInMatch(socket.data.userId);
     if (isInMatch) throw new BadRequestException('Você já está em uma partida');
 
     await socket.join('queue');
     const socketsInQueue = await this.io.in('queue').fetchSockets();
-    if (socketsInQueue.length >= 2) {
-      const [player1, player2] = socketsInQueue;
-      socketsInQueue.forEach((s) => s.leave('queue'));
-
-      const { match, pieces } = await this.matchService.createMatchAndPieces(
-        player1.data.userId,
-        player2.data.userId,
-      );
-
-      [player1, player2].forEach((socketPlayers, i) => {
-        const iAmPlayer = i === 0 ? 'player1' : 'player2';
-        socketPlayers.join(match.uuid);
-        socketPlayers.data.matchId = match.uuid;
-        socketPlayers.data.iAmPlayer = iAmPlayer;
-        socketPlayers.emit('match:init', match, pieces, iAmPlayer);
-      });
-    }
+    if (socketsInQueue.length >= 2)
+      await this.matchQueueService.pairTwoPlayers(socketsInQueue);
 
     return 'Você entrou na fila';
   }
