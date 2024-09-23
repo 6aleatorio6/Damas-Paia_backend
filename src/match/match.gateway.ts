@@ -61,52 +61,35 @@ export class MatchGateway implements OnGatewayConnection {
   @SubscribeMessage('match:paths')
   async getMove(
     @ConnectedSocket() socket: SocketM,
-    @MessageBody(ParseIntPipe) pieceId: number,
+    @MessageBody(ParseIntPipe) pId: number,
   ) {
-    const data = await this.matchService.getAndValidatePieces(
-      socket.data.iAmPlayer,
-      socket.data.matchId,
-      pieceId,
-    );
-
+    const { iAmPlayer, matchId } = socket.data;
+    const data = await this.matchService.getAndValidatePieces(iAmPlayer, matchId, pId);
     return this.movService.getPaths(data.piece, data.pieces);
   }
 
   @SubscribeMessage('match:move')
-  async move(socket: SocketM, moveDto: MoveDto) {
-    const data = await this.matchService.getAndValidatePieces(
-      socket.data.iAmPlayer,
-      socket.data.matchId,
-      moveDto.id,
-    );
+  async move(@ConnectedSocket() socket: SocketM, @MessageBody() moveDto: MoveDto) {
+    const { iAmPlayer, matchId } = socket.data;
+    const { id, to } = moveDto;
 
-    const moveResult = await this.movService.pieceMove(
-      data.piece,
-      data.pieces,
-      moveDto.to,
-    );
-    this.io.in(socket.data.matchId).emit('match:update', moveResult);
+    const data = await this.matchService.getAndValidatePieces(iAmPlayer, matchId, id);
+    const moveResult = await this.movService.pieceMove(data.piece, data.pieces, to);
+    this.io.in(matchId).emit('match:update', moveResult);
 
-    this.io
-      .in(socket.data.matchId)
-      .emit(
-        'match:status',
-        await this.matchService.toogleTurn(data.match),
-        await this.matchService.piecesCount(data.match.uuid),
-      );
+    const [status, piecesCount] = await Promise.all([
+      this.matchService.toogleTurn(data.match),
+      this.matchService.piecesCount(data.match.uuid),
+    ]);
+    this.io.in(matchId).emit('match:status', status, piecesCount);
   }
 
   @SubscribeMessage('match:quit')
-  async leaveMatch(socket: SocketM) {
+  async leaveMatch(@ConnectedSocket() socket: SocketM) {
     const { matchId, iAmPlayer } = socket.data;
 
-    this.io
-      .in(matchId)
-      .emit(
-        'match:finish',
-        await this.matchService.setWinner(matchId, iAmPlayer, 'resign'),
-      );
-
+    const winner = await this.matchService.setWinner(matchId, iAmPlayer, 'resign');
+    this.io.in(matchId).emit('match:finish', winner);
     this.io.in(matchId).disconnectSockets();
   }
 }
