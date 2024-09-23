@@ -19,10 +19,10 @@ describe('/match (CONTROLLER)', () => {
     token = await testApp.get(AuthService).login(user);
   });
 
-  describe('/user-matches', () => {
+  describe('/user', () => {
     const reqFind = (reqToken = token) =>
       request(testApp.getHttpServer())
-        .get('/match/user-matches')
+        .get('/match/user')
         .auth(reqToken, { type: 'bearer' });
 
     test('deve retornar as partidas do usuário', async () => {

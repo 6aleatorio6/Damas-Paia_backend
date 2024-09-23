@@ -6,7 +6,7 @@ import { ReqUser } from 'src/auth/custom.decorator';
 export class MatchController {
   constructor(private readonly matchService: MatchService) {}
 
-  @Get('user-matches')
+  @Get('user')
   findAllByUser(@ReqUser() user) {
     return this.matchService.findMatchsByUser(user.uuid);
   }
