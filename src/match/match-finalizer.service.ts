@@ -20,8 +20,12 @@ export class MatchFinalizerService {
   /**
    *  Finaliza a partida e desconecta os jogadores
    */
-  async finishMatch(socketsPlayer: RSocket[], loser: Players, status: WinnerStatus) {
-    const matchId = socketsPlayer[0]?.data.matchId;
+  async finishMatch(
+    socketsPlayer: RSocket[],
+    matchId: UUID,
+    loser: Players,
+    status: WinnerStatus,
+  ) {
     const endMatch = await this.setWinner(matchId, loser, status);
 
     // Desconecta todos os jogadores da sala da partida

@@ -61,10 +61,10 @@ export class MatchReconnectService {
     // Se a partida ainda estiver em andamento, finaliza a partida por timeout, caso contrário, ignora
     try {
       const connectedSockets = await socket.in(matchId).fetchSockets();
-      const allPlayerSockets = [socket, ...connectedSockets] as RSocket[];
+      const pSockets = [socket, ...connectedSockets] as RSocket[];
 
       if (await isMatchInProgress)
-        this.matchFinalizerService.finishMatch(allPlayerSockets, iAmPlayer, 'timeout');
+        this.matchFinalizerService.finishMatch(pSockets, matchId, iAmPlayer, 'timeout');
     } catch (error) {
       console.error('Erro ao finalizar partida por timeout', error);
     }

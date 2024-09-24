@@ -98,9 +98,9 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('match:quit')
   async leaveMatch(@ConnectedSocket() socket: SocketM) {
-    const loser = socket.data.iAmPlayer;
+    const { iAmPlayer, matchId } = socket.data;
 
-    const connectedSockets = await this.io.in(socket.data.matchId).fetchSockets();
-    await this.matchFinalizerService.finishMatch(connectedSockets, loser, 'resign');
+    const pSockets = await this.io.in(socket.data.matchId).fetchSockets();
+    await this.matchFinalizerService.finishMatch(pSockets, matchId, iAmPlayer, 'resign');
   }
 }
