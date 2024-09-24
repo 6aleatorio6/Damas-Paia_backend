@@ -19,7 +19,7 @@ describe('/match (CONTROLLER)', () => {
     token = await testApp.get(AuthService).login(user);
   });
 
-  describe('/user', () => {
+  describe('/match/user', () => {
     const reqFind = (reqToken = token) =>
       request(testApp.getHttpServer())
         .get('/match/user')
@@ -60,39 +60,37 @@ describe('/match (CONTROLLER)', () => {
     });
   });
 
-  describe('/is-in-match', () => {
-    const reqIsInMatch = (reqToken = token) =>
+  describe('/match/check-and-finish', () => {
+    const reqCheck = (reqToken = token) =>
       request(testApp.getHttpServer())
-        .get('/match/is-in-match')
+        .get('/match/check-and-finish')
         .auth(reqToken, { type: 'bearer' });
 
-    test('deve retornar true se o usuário estiver em uma partida', async () => {
-      const { client1 } = await createMatch();
-      const token = client1.io.opts.extraHeaders.Authorization;
-      const res = await reqIsInMatch(token.split(' ')[1]);
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('isInMatch', true);
-    });
-
-    test('deve retornar false se o usuário não estiver em uma partida', async () => {
-      const res = await reqIsInMatch();
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('isInMatch', false);
-    });
-
-    test('deve retornar false se o usuário estiver em uma partida finalizada', async () => {
-      const { client1 } = await createMatch();
+    test('deve finalizar as partidas em andamento e retornar a quantidade', async () => {
+      const { client1, client2 } = await createMatch();
       const token = client1.io.opts.extraHeaders.Authorization;
 
-      client1.emit('match:quit');
-      await client1.onPaia('match:finish');
-
-      const res = await reqIsInMatch(token.split(' ')[1]);
+      // Espera a notificação de finalização da partida
+      const finishMatchPromise = client2.onPaia('match:finish');
+      const res = await reqCheck(token.split(' ')[1]);
 
       expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('isInMatch', false);
+      expect(res.body).toEqual({
+        hasFinishedGames: true,
+        message: '1 partida(s) finalizada(s)',
+      });
+
+      await expect(finishMatchPromise).resolves.toBeTruthy();
+    });
+
+    test('deve retornar "Sem partidas em andamento" se não houver matches', async () => {
+      const res = await reqCheck();
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        hasFinishedGames: false,
+        message: '0 partida(s) finalizada(s)',
+      });
     });
   });
 });
