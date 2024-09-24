@@ -1,17 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, IsNull, Not, Repository } from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Match } from 'src/match/entities/match.entity';
 import { UUID } from 'crypto';
 import { Piece } from './entities/piece.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Players } from './match';
-
-type WinnerStatus = Match['winnerStatus'];
 
 @Injectable()
 export class MatchService {
@@ -20,8 +14,6 @@ export class MatchService {
     private matchRepository: Repository<Match>,
     @InjectRepository(Piece)
     private pieceRepository: Repository<Piece>,
-    @InjectDataSource()
-    private dataSource: DataSource,
   ) {}
 
   async piecesCount(matchId: UUID) {
@@ -34,38 +26,6 @@ export class MatchService {
       .getRawMany();
 
     return Object.fromEntries(countPieces.map((c) => [c.player, +c.count]));
-  }
-
-  async setWinner(matchId: UUID, loser: Players, status: WinnerStatus) {
-    const match = await this.matchRepository.findOne({
-      where: { uuid: matchId, winner: IsNull() },
-      relations: ['player1', 'player2'],
-      select: {
-        uuid: true,
-        player1: { username: true, uuid: true },
-        player2: { username: true, uuid: true },
-        dateInit: true,
-      },
-    });
-
-    if (!match) throw new BadRequestException('Partida não encontrada');
-
-    this.matchRepository.merge(match, {
-      winner: loser === 'player1' ? 'player2' : 'player1',
-      winnerStatus: status,
-      dateEnd: new Date(),
-    });
-
-    try {
-      this.dataSource.transaction(async (manager) => {
-        await manager.save(match);
-        await manager.delete(Piece, { match: { uuid: matchId } });
-      });
-    } catch (error) {
-      throw new InternalServerErrorException('Erro ao finalizar partida');
-    }
-
-    return match;
   }
 
   async findMatchsByUser(userId: UUID) {
