@@ -24,21 +24,21 @@ export class MatchReconnectService {
   /**
    * Agenda um timeout para finalizar a partida caso o jogador não se reconecte
    */
-  scheduleMatchTimeout(socket: SocketM) {
-    const { matchId } = socket.data;
+  async scheduleMatchTimeout(socket: SocketM) {
+    const { userId } = socket.data;
 
     const timeout = this.createMatchTimeout(socket);
-    this.matchTimeouts.set(matchId, timeout);
+    this.matchTimeouts.set(userId, timeout);
   }
 
   /**
    * Cancela o timeout de finalização de partida se o jogador se reconectar
    */
-  cancelMatchTimeout(matchId: UUID) {
-    const timeout = this.matchTimeouts.get(matchId);
+  cancelMatchTimeout(userId: UUID) {
+    const timeout = this.matchTimeouts.get(userId);
     if (timeout) {
       clearTimeout(timeout);
-      this.matchTimeouts.delete(matchId);
+      this.matchTimeouts.delete(userId);
     }
   }
 
@@ -46,18 +46,23 @@ export class MatchReconnectService {
    * Cria um timeout para finalizar a partida
    */
   private createMatchTimeout(socket: SocketM) {
-    const { matchId, iAmPlayer } = socket.data;
+    const { matchId, iAmPlayer, userId } = socket.data;
     const timeoutDuration = +this.configService.getOrThrow('TIMEOUT_TO_RECONNECT');
 
     return setTimeout(async () => {
-      this.matchTimeouts.delete(matchId); // Remove o timeout ativo após a execução
+      this.matchTimeouts.delete(userId); // Remove o timeout ativo após a execução
 
-      const isExists = this.matchRepository.existsBy({ uuid: matchId, winner: null });
-      if (!(await isExists)) return;
+      const isExists = this.matchRepository.existsBy({
+        uuid: matchId,
+        winner: IsNull(),
+      });
 
-      const endMatch = await this.matchService.setWinner(matchId, iAmPlayer, 'timeout');
-      socket.to(matchId).emit('match:finish', endMatch); // Notifica os outros jogadores que a partida terminou
-      socket.to(matchId).disconnectSockets(); // Desconecta todos os jogadores da sala da partida
+      // se a partida ainda estiver em andamento, finaliza a partida por timeout, caso contrário, ignora
+      try {
+        if (await isExists) this.finishMatch(socket, iAmPlayer, 'timeout');
+      } catch (error) {
+        console.error('Erro ao finalizar partida por timeout', error);
+      }
     }, timeoutDuration);
   }
 

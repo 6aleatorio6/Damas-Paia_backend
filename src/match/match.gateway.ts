@@ -37,10 +37,10 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {}
 
   handleConnection(socket: SocketM) {
-    socket.data.userId = socket.handshake.auth.userId;
+    socket.data.userId = socket.request.user.uuid;
 
-    if (socket.recovered)
-      this.matchReconnectService.cancelMatchTimeout(socket.data.matchId);
+    if (!socket.recovered) return;
+    this.matchReconnectService.cancelMatchTimeout(socket.data.userId);
   }
 
   handleDisconnect(socket: SocketM) {
