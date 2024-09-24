@@ -101,65 +101,53 @@ describe('match (Ws)', () => {
     });
   });
 
-  describe.skip('Cenários de Desconexão e Reconexão', () => {
-    test('Deve finalizar a partida 10s após a desconexão de um jogador', async () => {
-      const { client1, client2, matC2 } = await createMatch();
-      client1.disconnect();
-      await jest.advanceTimersByTimeAsync(
-        +testApp.get(ConfigService).get('RECONECT_MATCH_TIMEOUT'),
-      );
+  describe('Cenários de Desconexão e Reconexão', () => {
+    test('Deve declarar o jogador 2 como vencedor se o jogador 1 não se reconectar', async () => {
+      testApp.get(ConfigService).set('TIMEOUT_TO_RECONNECT', 100);
+      const { client1, client2 } = await createMatch();
 
-      const res = await client2.onPaia('match:end');
-      expect(res.winner).toHaveProperty('uuid', matC2.myPlayer.uuid);
-      expect(res).toHaveProperty('dateEnd');
+      const res = client2.onPaia('match:finish');
+
+      client1.disconnect();
+      await jest.advanceTimersToNextTimerAsync(1);
+
+      const [matchEnd] = await res;
+      expect(matchEnd).toHaveProperty('winner', 'player2');
+      expect(matchEnd).toHaveProperty('dateEnd');
+      expect(matchEnd).toHaveProperty('winnerStatus', 'timeout');
     });
 
     test('Deve permitir que o jogador se reconecte após a desconexão', async () => {
+      testApp.get(ConfigService).set('TIMEOUT_TO_RECONNECT', 30000);
       const { client1, matC1 } = await createMatch();
-      client1.disconnect();
+
+      client1.io.engine.close(); // simula a desconexão não intencional
       client1.connect();
+      jest.advanceTimersToNextTimerAsync(1);
 
-      const res = await client1.onPaia('match:start');
-      expect(res).toEqual(matC1);
-    });
+      const [, pieces] = matC1;
+      const piece = pieces.find((p) => p.player === 'player1');
+      const getPath = await client1.emitWithAck('match:paths', piece.id);
 
-    test('Deve declarar o jogador 2 como vencedor se o jogador 1 não se reconectar', async () => {
-      const { client1, client2, matC2 } = await createMatch();
-
-      client1.disconnect();
-
-      // espera o tempo de reconexão do jogador 1
-      const res = client2.onPaia('match:end');
-      await jest.advanceTimersByTimeAsync(
-        +testApp.get(ConfigService).get('RECONECT_MATCH_TIMEOUT') + 100,
-      );
-
-      // verifica se o jogador 2 ganhou, já que o jogador 1 não se reconectou
-      await expect(res).resolves.toHaveProperty('winner.uuid', matC2.myPlayer.uuid);
+      expect(getPath).toBeDefined();
     });
 
     test('Deve declarar vencedor o último jogador a se reconectar após ambos se desconectarem', async () => {
-      // cria a partida
-      const { client1, client2, matC2 } = await createMatch();
+      testApp.get(ConfigService).set('TIMEOUT_TO_RECONNECT', 100);
+      const { client1, client2 } = await createMatch();
 
-      // desconecta o jogador 1
       client1.disconnect();
-      // desconecta o jogador 2 depois de um tempo
-      await jest.advanceTimersByTimeAsync(100);
+      await jest.advanceTimersToNextTimerAsync(1);
+
+      const res = await client2.onPaia('match:finish');
+
       client2.disconnect();
+      await jest.advanceTimersToNextTimerAsync(2);
 
-      // jogador2 se reconecta
-      client2.connect();
-      await client2.onPaia('match:start');
-
-      // espera o tempo de reconexão do jogador 1
-      const res = client2.onPaia('match:end');
-      await jest.advanceTimersByTimeAsync(
-        +testApp.get(ConfigService).get('RECONECT_MATCH_TIMEOUT') + 100,
-      );
-
-      // verifica se o jogador 2 ganhou, já que o jogador 1 um foi o primeiro a se desconectar
-      await expect(res).resolves.toHaveProperty('winner.uuid', matC2.myPlayer.uuid);
+      const [matchEnd] = res;
+      expect(matchEnd).toHaveProperty('winner', 'player2');
+      expect(matchEnd).toHaveProperty('dateEnd');
+      expect(matchEnd).toHaveProperty('winnerStatus', 'timeout');
     });
   });
 

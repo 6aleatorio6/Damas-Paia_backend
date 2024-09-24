@@ -34,5 +34,8 @@ beforeAll(async () => {
 });
 
 beforeEach(() => testApp.get(DataSource).synchronize(true));
-afterEach(() => jest.runOnlyPendingTimersAsync());
+afterEach(() => {
+  jest.clearAllMocks();
+  jest.clearAllTimers();
+});
 afterAll(() => testApp.close());
