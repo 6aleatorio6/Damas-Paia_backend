@@ -8,6 +8,7 @@ import { MatchService } from './match-general.service';
 import { MovService } from './match-mov.service';
 import { MatchQueueService } from './match-queue.service';
 import { MatchReconnectService } from './match-reconnect.service';
+import { MatchFinalizerService } from './match-finalizer.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Match, Piece])],
@@ -17,6 +18,7 @@ import { MatchReconnectService } from './match-reconnect.service';
     MovService,
     MatchQueueService,
     MatchReconnectService,
+    MatchFinalizerService,
   ],
   exports: [TypeOrmModule],
   controllers: [MatchController],

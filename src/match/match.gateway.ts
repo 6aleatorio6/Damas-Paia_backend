@@ -22,6 +22,7 @@ import { MatchService } from './match-general.service';
 import { MovService } from './match-mov.service';
 import { MatchQueueService } from './match-queue.service';
 import { MatchReconnectService } from './match-reconnect.service';
+import { MatchFinalizerService } from './match-finalizer.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
@@ -34,6 +35,7 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly movService: MovService,
     private readonly matchQueueService: MatchQueueService,
     private readonly matchReconnectService: MatchReconnectService,
+    private readonly matchFinalizerService: MatchFinalizerService,
   ) {}
 
   handleConnection(socket: SocketM) {
@@ -97,6 +99,6 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('match:quit')
   async leaveMatch(@ConnectedSocket() socket: SocketM) {
     const loser = socket.data.iAmPlayer;
-    await this.matchReconnectService.finishMatch(socket, loser, 'resign');
+    await this.matchFinalizerService.finishMatch(socket, loser, 'resign');
   }
 }
