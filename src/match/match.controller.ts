@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
-import { MatchService } from './match.service';
+import { MatchService } from './match-general.service';
 import { ReqUser } from 'src/auth/custom.decorator';
-import { MatchQueueService } from './match.queue.service';
+import { MatchQueueService } from './match-queue.service';
 
 @Controller('match')
 export class MatchController {

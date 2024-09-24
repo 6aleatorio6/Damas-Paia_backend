@@ -18,10 +18,10 @@ import {
 import { WsExceptionsFilter } from 'src/common/wsException.filter';
 import { ServerM, SocketM } from './match.d';
 import { MoveDto } from './dto/move.match.dto';
-import { MatchService } from './match.service';
-import { MovService } from './match.mov.service';
-import { MatchQueueService } from './match.queue.service';
-import { MatchReconnectService } from './match.reconnect.service';
+import { MatchService } from './match-general.service';
+import { MovService } from './match-mov.service';
+import { MatchQueueService } from './match-queue.service';
+import { MatchReconnectService } from './match-reconnect.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())

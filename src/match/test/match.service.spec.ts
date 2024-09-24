@@ -2,7 +2,7 @@ import { TestBed } from '@automock/jest';
 import { Piece } from '../entities/piece.entity';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MatchQueueService } from '../match.queue.service';
+import { MatchQueueService } from '../match-queue.service';
 
 describe('MatchQueueService', () => {
   let matchQueueService: MatchQueueService;

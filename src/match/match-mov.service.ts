@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Piece } from './entities/piece.entity';
-import { Coord, Square } from './match.d';
+import { Coord, Square } from './match';
 
 // não altere a ordem, pois a ordem é importante para a lógica do createPaths
 const directions = {

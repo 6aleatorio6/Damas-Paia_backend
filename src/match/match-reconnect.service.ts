@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Players, ServerM, SocketM } from './match.d';
+import { Players, ServerM, SocketM } from './match';
 import { UUID } from 'crypto';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Match } from './entities/match.entity';

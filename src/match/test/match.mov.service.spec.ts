@@ -3,7 +3,7 @@ import { Match } from '../entities/match.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Piece } from '../entities/piece.entity';
 import { DataSource } from 'typeorm';
-import { MovService } from '../match.mov.service';
+import { MovService } from '../match-mov.service';
 import { Coord, Players } from '../match';
 
 const userPaia = { email: 'leonar', password: '123', username: 'leonar' };
