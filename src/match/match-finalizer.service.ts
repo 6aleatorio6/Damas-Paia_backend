@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Players, SocketM } from './match';
+import { Players, RSocket } from './match';
 import { UUID } from 'crypto';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Match } from './entities/match.entity';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { Piece } from './entities/piece.entity';
+
+type WinnerStatus = Match['winnerStatus'];
 
 @Injectable()
 export class MatchFinalizerService {
@@ -18,15 +20,12 @@ export class MatchFinalizerService {
   /**
    *  Finaliza a partida e desconecta os jogadores
    */
-  async finishMatch(socketLoser: SocketM, loser: Players, status: Match['winnerStatus']) {
-    const { matchId } = socketLoser.data;
+  async finishMatch(socketsPlayer: RSocket[], loser: Players, status: WinnerStatus) {
+    const matchId = socketsPlayer[0]?.data.matchId;
     const endMatch = await this.setWinner(matchId, loser, status);
 
-    const socketOthers = await socketLoser.in(matchId).fetchSockets();
-    const socketsOfMatch = [socketLoser, ...socketOthers];
-
     // Desconecta todos os jogadores da sala da partida
-    socketsOfMatch.forEach((socket) => {
+    socketsPlayer.forEach((socket) => {
       socket.emit('match:finish', endMatch); // Notifica os outros jogadores que a partida terminou
 
       socket.data.matchId = null;
@@ -38,7 +37,7 @@ export class MatchFinalizerService {
   /**
    *  Define o vencedor da partida, finaliza a partida e remove as peças
    */
-  private async setWinner(matchId: UUID, loser: Players, status: Match['winnerStatus']) {
+  private async setWinner(matchId: UUID, loser: Players, status: WinnerStatus) {
     const match = await this.matchRepository.findOne({
       where: { uuid: matchId, winner: IsNull() },
       relations: ['player1', 'player2'],

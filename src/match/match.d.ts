@@ -5,6 +5,7 @@ import { Piece } from './entities/piece.entity';
 import { UUID } from 'crypto';
 import { User } from 'src/user/entities/user.entity';
 import { MoveDto } from './dto/move.match.dto';
+import { RemoteSocket } from 'socket.io';
 
 //
 //
@@ -33,9 +34,11 @@ type Players = 'player1' | 'player2';
 
 interface SocketData {
   userId: UUID;
-  matchId: UUID;
-  iAmPlayer: Players;
+  matchId?: UUID;
+  iAmPlayer?: Players;
 }
+
+type RSocket = RemoteSocket<ServerToCl, SocketData>;
 
 // EMIT
 interface ServerToCl {
