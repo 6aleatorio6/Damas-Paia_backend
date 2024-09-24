@@ -5,6 +5,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import {
   BadRequestException,
@@ -20,21 +21,30 @@ import { MoveDto } from './dto/move.match.dto';
 import { MatchService } from './match.service';
 import { MovService } from './match.mov.service';
 import { MatchQueueService } from './match.queue.service';
+import { MatchReconnectService } from './match.reconnect.service';
 
 @UseFilters(new WsExceptionsFilter())
 @UsePipes(new ValidationPipe())
 @WebSocketGateway({ cors: true, namespace: 'match' })
-export class MatchGateway implements OnGatewayConnection {
+export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() io: ServerM;
 
   constructor(
     private readonly matchService: MatchService,
     private readonly movService: MovService,
     private readonly matchQueueService: MatchQueueService,
+    private readonly matchReconnectService: MatchReconnectService,
   ) {}
 
   handleConnection(socket: SocketM) {
-    socket.data.userId = socket.request.user.uuid;
+    socket.data.userId = socket.handshake.auth.userId;
+
+    if (socket.recovered)
+      this.matchReconnectService.cancelMatchTimeout(socket.data.matchId);
+  }
+
+  handleDisconnect(socket: SocketM) {
+    if (socket.data.matchId) this.matchReconnectService.scheduleMatchTimeout(socket);
   }
 
   @SubscribeMessage('match:queue')

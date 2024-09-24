@@ -7,10 +7,17 @@ import { MatchController } from './match.controller';
 import { MatchService } from './match.service';
 import { MovService } from './match.mov.service';
 import { MatchQueueService } from './match.queue.service';
+import { MatchReconnectService } from './match.reconnect.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Match, Piece])],
-  providers: [MatchGateway, MatchService, MovService, MatchQueueService],
+  providers: [
+    MatchGateway,
+    MatchService,
+    MovService,
+    MatchQueueService,
+    MatchReconnectService,
+  ],
   exports: [TypeOrmModule],
   controllers: [MatchController],
 })
