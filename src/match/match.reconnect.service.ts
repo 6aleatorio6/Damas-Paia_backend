@@ -69,18 +69,20 @@ export class MatchReconnectService {
   /**
    *  Finaliza a partida e desconecta os jogadores
    */
-  async finishMatch(socket: SocketM, loser: Players, status: Match['winnerStatus']) {
-    const { matchId } = socket.data;
+  async finishMatch(socketLoser: SocketM, loser: Players, status: Match['winnerStatus']) {
+    const { matchId } = socketLoser.data;
     const endMatch = await this.setWinner(matchId, loser, status);
 
-    socket.to(matchId).emit('match:finish', endMatch); // Notifica os outros jogadores que a partida terminou
+    const socketOthers = await socketLoser.in(matchId).fetchSockets();
+    const socketsOfMatch = [socketLoser, ...socketOthers];
 
     // Desconecta todos os jogadores da sala da partida
-    const restSockets = await socket.in(matchId).fetchSockets();
-    [...restSockets, socket].forEach((s) => {
+    socketsOfMatch.forEach((socket) => {
+      socket.emit('match:finish', endMatch); // Notifica os outros jogadores que a partida terminou
+
       socket.data.matchId = null;
       socket.data.iAmPlayer = null;
-      s.disconnect();
+      socket.disconnect();
     });
   }
 
