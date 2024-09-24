@@ -17,6 +17,16 @@ export class MatchFinalizerService {
     private readonly matchRepository: Repository<Match>,
   ) {}
 
+  async findMatchesInProgress(userId: UUID) {
+    return this.matchRepository.find({
+      where: [
+        { winner: IsNull(), player1: { uuid: userId } },
+        { winner: IsNull(), player2: { uuid: userId } },
+      ],
+      loadRelationIds: true,
+    });
+  }
+
   /**
    *  Finaliza a partida e desconecta os jogadores
    */
