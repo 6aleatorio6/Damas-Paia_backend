@@ -13,9 +13,7 @@ describe('/user (GET)', () => {
   let token: string;
 
   const reqFindOne = (reqToken = token) =>
-    request(testApp.getHttpServer())
-      .get('/user')
-      .auth(reqToken, { type: 'bearer' });
+    request(testApp.getHttpServer()).get('/user').auth(reqToken, { type: 'bearer' });
 
   beforeEach(async () => {
     await testApp.get(UserService).create({ ...user });
@@ -36,12 +34,10 @@ describe('/user (GET)', () => {
 
   it('user do token não existe', async () => {
     const res = await reqFindOne(
-      testApp
-        .get(JwtService)
-        .sign({ uuid: '04f903da-7826-47db-a7aa-24b47ba14757' }),
+      testApp.get(JwtService).sign({ uuid: '04f903da-7826-47db-a7aa-24b47ba14757' }),
     );
 
-    expect(res.statusCode).toBe(404);
-    expect(res.body).toHaveProperty('message', 'Usuário não encontrado');
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('message', 'O usuario já não existe mais');
   });
 });

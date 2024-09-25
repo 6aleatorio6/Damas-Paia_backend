@@ -5,7 +5,7 @@ import { TestBed } from '@automock/jest';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from '../dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
 const uuidUser = 'uuid-paia-paia-paia-paia';
 const oneUser: CreateUserDto = {
@@ -80,17 +80,17 @@ describe('UserService', () => {
 
   describe('FindOne', () => {
     it('BadRequest se não encontrar o user', async () => {
-      const findOnePromise = userService.findOne(uuidUser);
+      const findOnePromise = userService.findOneByToken(uuidUser);
 
       await expect(findOnePromise).rejects.toThrow(
-        new BadRequestException('Usuário não encontrado'),
+        new UnauthorizedException('O usuario já não existe mais'),
       );
     });
 
     it('Buscando um user que existe', async () => {
       db.findOne.mockResolvedValue(oneUser as any);
 
-      const findOnePromise = userService.findOne(uuidUser);
+      const findOnePromise = userService.findOneByToken(uuidUser);
       await expect(findOnePromise).resolves.toEqual(oneUser);
     });
   });
