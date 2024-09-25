@@ -1,8 +1,6 @@
-import { createClient, wsTestAll } from 'test/wsHelper';
+import { createClient } from 'test/wsHelper';
 
 describe('IoAdapterAuth (ws) ', () => {
-  wsTestAll();
-
   test('conectando com token valido', async () => {
     const client = await createClient();
 

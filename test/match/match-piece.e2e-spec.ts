@@ -1,8 +1,6 @@
-import { createMatch, wsTestAll } from 'test/wsHelper';
+import { createMatch } from 'test/wsHelper';
 
 describe('match-piece (Ws)', () => {
-  wsTestAll();
-
   describe('match:paths ', () => {
     test('Deve retornar BadRequest ao tentar ver os caminhos fora do turno', async () => {
       const { client2 } = await createMatch();

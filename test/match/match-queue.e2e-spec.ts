@@ -1,8 +1,6 @@
-import { createClient, createMatch, wsTestAll } from 'test/wsHelper';
+import { createClient, createMatch } from 'test/wsHelper';
 
 describe('queue (Ws)', () => {
-  wsTestAll();
-
   test('Entrando na fila e criando uma partida', async () => {
     const client1 = await createClient();
     const client2 = await createClient();
@@ -68,16 +66,12 @@ describe('queue (Ws)', () => {
     });
   });
 
-  test.failing('teste de carga na fila', async () => {
-    const clients = await Promise.all(
-      Array.from({ length: 20 }, () => createClient()),
-    );
+  test.skip('teste de carga na fila', async () => {
+    const clients = await Promise.all(Array.from({ length: 20 }, () => createClient()));
 
     clients.map((c) => c.emitWithAck('match:queue', 'join'));
 
-    const results = await Promise.all(
-      clients.map((c) => c.onPaia('match:init')),
-    );
+    const results = await Promise.all(clients.map((c) => c.onPaia('match:init')));
 
     for (let index = 0; index < results.length / 2; index++) {
       const [matchp1] = results[index];

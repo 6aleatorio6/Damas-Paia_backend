@@ -2,7 +2,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
 import { testApp } from 'test/setup';
-import { createMatch, wsTestAll } from 'test/wsHelper';
+import { createMatch } from 'test/wsHelper';
 const user = {
   email: 'leoPaia@gmail.com',
   password: 'leo123123',
@@ -10,7 +10,6 @@ const user = {
 };
 
 describe('/match (CONTROLLER)', () => {
-  wsTestAll();
   let token: string;
 
   beforeEach(async () => {

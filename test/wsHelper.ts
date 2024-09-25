@@ -1,6 +1,6 @@
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
-import { testApp } from 'test/setup';
+import { clientsSockets, port, socketPaiado, testApp } from 'test/setup';
 import { io, Socket } from 'socket.io-client';
 import { ClientToSv, ServerToCl } from 'src/match/match';
 import { Match } from 'src/match/entities/match.entity';
@@ -17,18 +17,6 @@ async function getToken() {
   await testApp.get(UserService).create({ ...userAleatorio });
   return testApp.get(AuthService).login(userAleatorio);
 }
-
-let port: any;
-const clients: Socket[] = [];
-type socketPaiado = Socket<ServerToCl, ClientToSv>;
-
-export const wsTestAll = () => {
-  beforeAll(async () => {
-    const app = await testApp.listen(0);
-    port = app.address().port;
-  });
-  afterAll(() => clients.forEach((c) => c.close()));
-};
 
 export async function createClient(tokenSus: string | null = 'PAIA') {
   const token = await getToken();
@@ -52,7 +40,7 @@ export async function createClient(tokenSus: string | null = 'PAIA') {
     });
   };
 
-  clients.push(client);
+  clientsSockets.push(client);
   return client;
 }
 
