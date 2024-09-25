@@ -71,7 +71,7 @@ export class MatchFinalizerService {
       dateEnd: new Date(),
     });
 
-    this.dataSource.transaction(async (manager) => {
+    await this.dataSource.transaction(async (manager) => {
       await manager.save(match);
       await manager.delete(Piece, { match: { uuid: matchId } });
     });

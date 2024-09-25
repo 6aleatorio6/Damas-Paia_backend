@@ -27,7 +27,7 @@ export class MatchController {
       const loser = player1 === user.uuid ? 'player1' : 'player2';
       const socketsPlayer = await this.matchGateway.io.in(uuid).fetchSockets();
 
-      await this.matchFinalizerService.finishMatch(socketsPlayer, uuid, loser, user.uuid);
+      await this.matchFinalizerService.finishMatch(socketsPlayer, uuid, loser, 'timeout');
     }
 
     return {

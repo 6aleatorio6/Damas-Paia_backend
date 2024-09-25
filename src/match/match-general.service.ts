@@ -36,6 +36,7 @@ export class MatchService {
         { ...where, player2: { uuid: userId } },
       ],
       relations: ['player1', 'player2'],
+      order: { dateEnd: 'DESC' },
       select: {
         player1: { username: true, uuid: true },
         player2: { username: true, uuid: true },
