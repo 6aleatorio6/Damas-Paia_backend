@@ -59,10 +59,9 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return 'Você saiu da fila';
     }
 
-    const isInMatch = await this.matchQueueService.isUserInMatch(socket.data.userId);
-    if (isInMatch) throw new BadRequestException('Você já está em uma partida');
-
+    await this.matchQueueService.validToEnterQueueOrThrow(socket.data.userId, this.io);
     await socket.join('queue');
+
     const socketsInQueue = await this.io.in('queue').fetchSockets();
     if (socketsInQueue.length >= 2)
       await this.matchQueueService.pairTwoPlayers(socketsInQueue);

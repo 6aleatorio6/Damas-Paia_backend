@@ -6,7 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { RemoteSocket } from 'socket.io/dist/broadcast-operator.d';
-import { ServerToCl, SocketData } from './match';
+import { RSocket, ServerM, ServerToCl, SocketData, SocketM } from './match';
 
 @Injectable()
 export class MatchQueueService {
@@ -19,7 +19,22 @@ export class MatchQueueService {
     private dataSource: DataSource,
   ) {}
 
-  async pairTwoPlayers(socketsInQueue: RemoteSocket<ServerToCl, SocketData>[]) {
+  async validToEnterQueueOrThrow(userId: UUID, io: ServerM) {
+    // estou buscando todos os sockets conectados para o caso de o usuário já estar na fila com outro socket
+    const sockets = await io.fetchSockets();
+
+    for (const socket of sockets) {
+      if (socket.data.userId !== userId) continue;
+
+      const isInQueue = socket.rooms.has('queue');
+      if (isInQueue) throw new BadRequestException('Você já está na fila');
+
+      const isInMatch = socket.data.matchId;
+      if (isInMatch) throw new BadRequestException('Você já está em uma partida');
+    }
+  }
+
+  async pairTwoPlayers(socketsInQueue: RSocket[]) {
     const [player1, player2] = socketsInQueue;
     socketsInQueue.forEach((s) => s.leave('queue'));
 
@@ -35,13 +50,6 @@ export class MatchQueueService {
       socketPlayers.data.iAmPlayer = iAmPlayer;
       socketPlayers.emit('match:init', match, pieces, iAmPlayer);
     });
-  }
-
-  async isUserInMatch(userId: UUID) {
-    return this.matchRepository.existsBy([
-      { player1: { uuid: userId }, dateEnd: IsNull(), winner: IsNull() },
-      { player2: { uuid: userId }, dateEnd: IsNull(), winner: IsNull() },
-    ]);
   }
 
   async createMatchAndPieces(player1Id: UUID, player2Id: UUID) {
