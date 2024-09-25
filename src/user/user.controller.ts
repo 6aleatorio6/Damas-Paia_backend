@@ -28,7 +28,7 @@ export class UserController {
 
   @Get('')
   async findOneByToken(@ReqUser() ReqUser: IToken) {
-    return await this.userService.findOne(ReqUser.uuid);
+    return await this.userService.findOneByToken(ReqUser.uuid);
   }
 
   @Public()

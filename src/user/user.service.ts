@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,13 +21,13 @@ export class UserService {
     private configService: ConfigService,
   ) {}
 
-  async findOne(uuid: UUID) {
+  async findOneByToken(uuid: UUID) {
     const user = await this.usersRepository.findOne({
       select: { username: true, email: true, uuid: true },
       where: { uuid },
     });
 
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!user) throw new UnauthorizedException('O usuario já não existe mais');
 
     return user;
   }
