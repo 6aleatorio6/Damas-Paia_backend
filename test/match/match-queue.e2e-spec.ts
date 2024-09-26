@@ -1,3 +1,4 @@
+import { Match } from 'src/match/entities/match.entity';
 import { createClient, createMatch } from 'test/wsHelper';
 
 describe('queue (Ws)', () => {
@@ -66,18 +67,30 @@ describe('queue (Ws)', () => {
     });
   });
 
-  test.skip('teste de carga na fila', async () => {
+  test('teste de carga na fila com 20 pessoas entrando simultaneamente', async () => {
     const clients = await Promise.all(Array.from({ length: 20 }, () => createClient()));
 
-    clients.map((c) => c.emitWithAck('match:queue', 'join'));
+    const resultsPromise = Promise.all(
+      clients.map((client) => client.onPaia('match:init')),
+    );
 
-    const results = await Promise.all(clients.map((c) => c.onPaia('match:init')));
+    clients.forEach((client) => client.emitWithAck('match:queue', 'join'));
 
-    for (let index = 0; index < results.length / 2; index++) {
-      const [matchp1] = results[index];
-      const [matchp2] = results[index + 1];
+    const results = (await resultsPromise) as [Match[]];
 
-      expect(matchp1).toEqual(matchp2);
-    }
+    const playerUUIDs = new Set<string>();
+    const matchUUIDs = new Set<string>();
+
+    results.forEach(([match]) => {
+      if (matchUUIDs.has(match.uuid)) return;
+
+      expect(playerUUIDs).not.toContain(match.player1.uuid);
+      playerUUIDs.add(match.player1.uuid);
+
+      expect(playerUUIDs).not.toContain(match.player2.uuid);
+      playerUUIDs.add(match.player2.uuid);
+
+      matchUUIDs.add(match.uuid);
+    });
   });
 });
