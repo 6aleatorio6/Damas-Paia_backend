@@ -41,7 +41,12 @@ export class MovService {
    * Retorna um array de coordenadas possíveis para a peça
    */
   getPaths(piece: Piece, pieces: Piece[]) {
-    return this.createPaths(piece, pieces).flatMap((s) => this.flatPaths(s));
+    const paths = this.createPaths(piece, pieces).flatMap((s) => this.flatPaths(s));
+
+    if (!paths.length)
+      throw new BadRequestException('Essa peça não tem movimentos disponíveis');
+
+    return paths;
   }
 
   /**
@@ -51,7 +56,7 @@ export class MovService {
     for (const path of paths) {
       const { side, coord } = path;
 
-      if (!path?.piece) coords.push(coord);
+      if (!path.piece) coords.push(coord);
       if (side?.length) side.forEach((s) => this.flatPaths(s, coords));
     }
     return coords;
@@ -69,8 +74,8 @@ export class MovService {
       const chainOfMotion = chain.filter((c) => !c.piece).map((c) => c.coord);
       const piecesDeads = chain.filter((c) => c.piece).map((c) => c.piece.id);
 
-      const isQueen =
-        piece.isQueen || piece.player === 'player1' ? mov.y === 7 : mov.y == 0;
+      const isPromotion = piece.player === 'player1' ? mov.y === 7 : mov.y === 0;
+      const isQueen = piece.isQueen || isPromotion;
 
       return { isQueen, chainOfMotion, piecesDeads };
     }
