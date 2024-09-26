@@ -14,6 +14,11 @@ export class MatchController {
     private readonly matchGateway: MatchGateway,
   ) {}
 
+  @Get('ranking')
+  async getRanking() {
+    return this.matchService.getRanking();
+  }
+
   @Get('user')
   findAllByUser(@ReqUser() user) {
     return this.matchService.findMatchsByUser(user.uuid);

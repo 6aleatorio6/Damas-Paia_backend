@@ -16,6 +16,20 @@ export class MatchService {
     private pieceRepository: Repository<Piece>,
   ) {}
 
+  async getRanking() {
+    return await this.matchRepository
+      .createQueryBuilder('match')
+      .where('winner IS NOT NULL')
+      .leftJoin('match.player1', 'winnerUser', ' match.winner = :p1', { p1: 'player1' })
+      .leftJoin('match.player2', 'winnerUser2', ' match.winner = :p2', { p2: 'player2' })
+      .groupBy('winnerUser.username')
+      .addGroupBy('winnerUser2.username')
+      .select('COUNT(*)', 'wins')
+      .orderBy('wins', 'DESC')
+      .addSelect('COALESCE(winnerUser.username, winnerUser2.username)', 'username')
+      .getRawMany();
+  }
+
   async piecesCount(matchId: UUID) {
     const countPieces = await this.pieceRepository
       .createQueryBuilder('piece')
