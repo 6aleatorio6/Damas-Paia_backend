@@ -5,17 +5,23 @@ import { io, Socket } from 'socket.io-client';
 import { ClientToSv, ServerToCl } from 'src/match/match';
 import { Match } from 'src/match/entities/match.entity';
 import { Piece } from 'src/match/entities/piece.entity';
+import { User } from 'src/user/entities/user.entity';
 
 let i = 0;
-async function getToken() {
+export async function createUser() {
   const userAleatorio = {
     email: `leoPaia${++i}@gmail.com`,
-    username: 'leo123123' + ++i,
+    username: 'leo' + ++i,
     password: 'paia123',
-  };
+  } as User;
 
-  await testApp.get(UserService).create({ ...userAleatorio });
-  return testApp.get(AuthService).login(userAleatorio);
+  const userCreated = await testApp.get(UserService).create({ ...userAleatorio });
+  userAleatorio.uuid = userCreated.uuid;
+  return userAleatorio;
+}
+
+export async function getToken() {
+  return testApp.get(AuthService).login(await createUser());
 }
 
 export async function createClient(tokenSus: string | null = 'PAIA') {

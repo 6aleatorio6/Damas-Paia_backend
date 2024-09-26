@@ -10,18 +10,19 @@ export class DbTest extends DataSource {
     });
   }
 
-  async create() {
-    await this.initialize();
-    const createDb = async () => {
-      try {
-        this.dbName = `TEST_POSTGRES_PAIA_${Date.now() + Math.floor(Math.random() * 100)}`;
-        await this.query(`CREATE DATABASE "${this.dbName}"`);
-      } catch {
-        createDb();
-      }
-    };
-    await createDb();
-    await this.destroy();
+  async create(index = 0) {
+    if (!this.isInitialized) await this.initialize();
+
+    const numberRandom = Math.random() * 100 + index;
+    try {
+      this.dbName = `TEST_POSTGRES_PAIA_${numberRandom}`;
+      await this.query(`CREATE DATABASE "${this.dbName}"`);
+      await this.destroy();
+    } catch (error) {
+      console.count('error');
+
+      this.create(index + 1);
+    }
   }
 
   async deleteAll() {
@@ -31,17 +32,12 @@ export class DbTest extends DataSource {
       "SELECT datname FROM pg_database WHERE datname LIKE 'TEST_POSTGRES_PAIA_%'",
     );
 
-    const querys = databases.map((db) =>
-      this.query(`DROP DATABASE "${db.datname}"`),
-    );
+    const queries = databases.map((db) => this.query(`DROP DATABASE "${db.datname}"`));
 
-    await Promise.all(querys);
+    await Promise.all(queries);
 
     await this.destroy();
   }
 }
-
-//
-//
 
 export default () => new DbTest().deleteAll();

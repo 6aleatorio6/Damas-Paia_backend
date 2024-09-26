@@ -49,3 +49,6 @@ afterEach(async () => {
   testApp.get(MatchGateway).io.disconnectSockets(true);
   jest.clearAllTimers();
 });
+afterAll(async () => {
+  await testApp.close();
+});
