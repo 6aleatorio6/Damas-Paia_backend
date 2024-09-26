@@ -27,6 +27,20 @@ export class MatchFinalizerService {
     });
   }
 
+  async verifyMoveAndFinishMatch(
+    pieceCount: Record<Players, number>,
+    matchId: UUID,
+    sockets: RSocket[],
+  ) {
+    const player1HasPieces = pieceCount.player1 > 0;
+    const player2HasPieces = pieceCount.player2 > 0;
+
+    if (player1HasPieces && player2HasPieces) return;
+
+    const loser = !player1HasPieces ? 'player1' : 'player2';
+    return this.finishMatch(sockets, matchId, loser, 'checkmate');
+  }
+
   /**
    *  Finaliza a partida e desconecta os jogadores
    */

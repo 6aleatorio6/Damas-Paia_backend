@@ -93,6 +93,13 @@ export class MatchGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.matchService.piecesCount(data.match.uuid),
     ]);
     this.io.in(matchId).emit('match:status', status, piecesCount);
+
+    const sockets = await this.io.in(matchId).fetchSockets();
+    await this.matchFinalizerService.verifyMoveAndFinishMatch(
+      piecesCount,
+      matchId,
+      sockets,
+    );
   }
 
   @SubscribeMessage('match:quit')

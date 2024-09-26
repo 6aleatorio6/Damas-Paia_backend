@@ -30,7 +30,7 @@ export class MatchService {
       .getRawMany();
   }
 
-  async piecesCount(matchId: UUID) {
+  async piecesCount(matchId: UUID): Promise<Record<Players, number>> {
     const countPieces = await this.pieceRepository
       .createQueryBuilder('piece')
       .where('piece.matchUuid = :matchId', { matchId })
