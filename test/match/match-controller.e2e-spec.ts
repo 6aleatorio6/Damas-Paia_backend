@@ -1,8 +1,12 @@
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
+import { Match } from 'src/match/entities/match.entity';
+import { Players } from 'src/match/match';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
 import { testApp } from 'test/setup';
-import { createMatch } from 'test/wsHelper';
+import { createMatch, createUser, getToken } from 'test/wsHelper';
+
 const user = {
   email: 'leoPaia@gmail.com',
   password: 'leo123123',
@@ -79,7 +83,10 @@ describe('/match (CONTROLLER)', () => {
         message: '1 partida(s) finalizada(s)',
       });
 
-      await expect(finishMatchPromise).resolves.toBeTruthy();
+      const [match] = await finishMatchPromise;
+      expect(match).toBeTruthy();
+      expect(match).toHaveProperty('winner', 'player2');
+      expect(match).toHaveProperty('winnerStatus', 'timeout');
     });
 
     test('deve retornar "Sem partidas em andamento" se não houver matches', async () => {
@@ -92,4 +99,55 @@ describe('/match (CONTROLLER)', () => {
       });
     });
   });
+
+  describe('/match/ranking', () => {
+    let token: string;
+
+    const reqRanking = () =>
+      request(testApp.getHttpServer())
+        .get('/match/ranking')
+        .auth(token, { type: 'bearer' });
+
+    beforeEach(async () => {
+      token = await getToken();
+    });
+
+    test('deve retornar um array vazio, pois não existe partidas', async () => {
+      const res = await reqRanking();
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveLength(0);
+    });
+
+    test('deve retornar o ranking de partidas', async () => {
+      await createMatchInDb('player1', 10);
+      await createMatchInDb('player1', 2);
+      await createMatchInDb('player2', 1);
+
+      const res = await reqRanking();
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveLength(3);
+      expect(res.body).toEqual([
+        { username: expect.any(String), wins: '10' },
+        { username: expect.any(String), wins: '2' },
+        { username: expect.any(String), wins: '1' },
+      ]);
+    });
+  });
 });
+
+async function createMatchInDb(playerWin: Players, numberOfWin = 1) {
+  const player1 = await createUser();
+  const player2 = await createUser();
+
+  for (let i = 0; i < numberOfWin; i++) {
+    const match = testApp.get(getRepositoryToken(Match)).create({
+      player1: { uuid: player1.uuid },
+      player2: { uuid: player2.uuid },
+      winner: playerWin,
+      winnerStatus: 'checkmate',
+    });
+    await testApp.get(getRepositoryToken(Match)).save(match);
+  }
+}

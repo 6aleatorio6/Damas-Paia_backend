@@ -67,7 +67,7 @@ describe('match (Ws)', () => {
       jest.advanceTimersByTimeAsync(1100);
 
       const [, pieces] = matC1;
-      const piece = pieces.find((p) => p.player === 'player1');
+      const piece = pieces.find((p) => p.player === 'player1' && p.y === 2);
       const getPath = await client1.emitWithAck('match:paths', piece.id);
 
       expect(getPath).toBeDefined();
