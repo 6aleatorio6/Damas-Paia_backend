@@ -10,18 +10,27 @@ export type OAuth2ProviderCb = (authCode: string) => Promise<{
 
 @Injectable()
 export class OAuth2ProviderService {
-  constructor() {
-    // Inicialização do serviço
-  }
+  constructor(private configService: ConfigService) {}
 
-  google: OAuth2ProviderType = {
-    url: 'https://accounts.google.com/o/oauth2/v2/auth',
-    callback: (access: string) => {
+  async google(idToken: string): ReturnType<OAuth2ProviderCb> {
+    const oAuth2Client = new OAuth2Client(
+      this.configService.get('CLIENT_ID'),
+      this.configService.get('CLIENT_SECRET'),
+    );
+
+    // Obtenha as informações do usuário
+    try {
+      const ticket = await oAuth2Client.verifyIdToken({ idToken });
+      const payload = ticket.getPayload();
+
       return {
-        providerId: 'google',
-        username: 'google',
-        avatar: 'google',
+        providerId: payload.sub,
+        avatar: payload.picture,
+        username: payload.given_name || payload.name,
       };
-    },
-  };
+    } catch (error) {
+      console.error('Erro ao verificar o token de ID:', error);
+      throw new BadRequestException('Erro ao verificar o token de ID do Google');
+    }
+  }
 }
