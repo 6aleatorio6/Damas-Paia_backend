@@ -1,13 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { OAuth2Client } from 'google-auth-library';
 
-export interface OAuth2ProviderType {
-  url: string;
-  callback: (access: string) => {
-    providerId: string;
-    username: string;
-    avatar: string;
-  };
-}
+export type OAuth2ProviderCb = (authCode: string) => Promise<{
+  providerId: string;
+  username: string;
+  avatar: string;
+}>;
 
 @Injectable()
 export class OAuth2ProviderService {

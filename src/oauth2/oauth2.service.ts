@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtAuthService } from 'src/auth/jwt.service';
-import { OAuth2ProviderService, OAuth2ProviderType } from './oauth2-providers.service';
+import { OAuth2ProviderCb, OAuth2ProviderService } from './oauth2-providers.service';
 import { OAuth2 } from './entities/oauth2.entity';
 import { User } from 'src/user/entities/user.entity';
 
@@ -17,13 +17,9 @@ export class Oauth2Service {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  getUrlRedirect(providerName: string): string {
-    return this.getProvider(providerName).url;
-  }
-
-  async signOrLogin(providerName: string, accessToken: string): Promise<string> {
-    const { providerId, username, avatar } =
-      this.getProvider(providerName).callback(accessToken);
+  async signOrLogin(providerName: string, providerToken: string): Promise<string> {
+    const cb = this.getProvider(providerName);
+    const { providerId, username, avatar } = await cb(providerToken);
 
     const findUserByOauth = await this.oauth2Repo.findOne({
       where: { providerName, providerId },
@@ -57,14 +53,14 @@ export class Oauth2Service {
   private async uniqueUsername(username: string) {
     const exists = await this.userRepo.findOne({ where: { username } });
 
-    const [baseName, suffixNumber = 0] = username.split(/(\d+)$/);
+    const [baseName, suffixNumber = 0] = username.slice(0, 39).split(/(\d+)$/);
     return exists ? username : `${baseName}${+suffixNumber + 1}`;
   }
 
-  private getProvider(providerName: string): OAuth2ProviderType {
-    const provider = this.providersService[providerName];
-    if (!provider)
+  private getProvider(providerName: string): OAuth2ProviderCb {
+    const cb = this.providersService[providerName];
+    if (!cb)
       throw new BadRequestException(`Provedor OAuth2 '${providerName}' não encontrado.`);
-    return provider;
+    return cb;
   }
 }
