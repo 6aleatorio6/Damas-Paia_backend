@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { compare } from 'bcrypt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -43,9 +39,9 @@ export class AuthService {
    */
   public async refreshToken(token?: string) {
     const { payload, status } = this.jwtService.validateToken(token);
-    const uuid = payload.uuid;
 
     if (status != 'REFRESH') throw new UnauthorizedException('Token inválido!');
+    const uuid = payload.uuid;
 
     // verifica se o usuario do token ainda existe
     const isExistUser = await this.usersRepository.existsBy({ uuid });
