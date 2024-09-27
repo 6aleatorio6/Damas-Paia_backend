@@ -4,6 +4,7 @@ import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
 import { Piece } from '../match/entities/piece.entity';
 import { Match } from '../match/entities/match.entity';
+import { OAuth2 } from 'src/oauth2/entities/oauth2.entity';
 
 @Injectable()
 export class TypeOrmConfigService implements TypeOrmOptionsFactory {
@@ -15,7 +16,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       url: this.config.get('DATABASE_URL'),
       dropSchema: this.isModo('test'),
       synchronize: this.isModo('dev', 'test'),
-      entities: [User, Piece, Match],
+      entities: [User, Piece, Match, OAuth2],
     };
   }
 
