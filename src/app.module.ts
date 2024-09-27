@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmConfigService as OrmConfig } from './common/database.service';
 import { Public } from './auth/custom.decorator';
 import { MatchModule } from './match/match.module';
+import { Oauth2Module } from './oauth2/oauth2.module';
 
 // endpoint para checar se o sv está on
 @Controller()
@@ -28,6 +29,7 @@ class AppController {
     UserModule,
     AuthModule,
     MatchModule,
+    Oauth2Module,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
