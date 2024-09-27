@@ -23,7 +23,7 @@ export class UserService {
 
   async findOneByToken(uuid: UUID) {
     const user = await this.usersRepository.findOne({
-      select: { username: true, email: true, uuid: true },
+      select: { username: true, email: true, uuid: true, avatar: true },
       where: { uuid },
     });
 
