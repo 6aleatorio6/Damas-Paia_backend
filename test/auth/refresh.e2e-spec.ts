@@ -10,14 +10,10 @@ let uuidPaia: UUID;
 
 describe('/auth/refresh (GET)', () => {
   const fetchPaia = (token: string) =>
-    request(testApp.getHttpServer())
-      .get('/auth/refresh')
-      .auth(token, { type: 'bearer' });
+    request(testApp.getHttpServer()).get('/auth/refresh').auth(token, { type: 'bearer' });
 
   const createToken = (status: 'exp' | 'valid', uuid = uuidPaia) =>
-    testApp
-      .get(JwtService)
-      .sign({ uuid }, { expiresIn: status == 'exp' ? -1 : 1 });
+    testApp.get(JwtService).sign({ uuid }, { expiresIn: status == 'exp' ? -1 : 1 });
 
   beforeEach(async () => {
     // criando um user
@@ -72,6 +68,14 @@ describe('/auth/refresh (GET)', () => {
   it('Token com secret errado', async () => {
     const token = jwt.sign({ uuid: 'paia' }, 'secretPaiadoErrado');
     const res = await fetchPaia(token);
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toHaveProperty('message', 'Token inválido!');
+    expect(res.body).not.toHaveProperty('token');
+  });
+
+  it('token com formato errado', async () => {
+    const res = await fetchPaia('undefined');
 
     expect(res.statusCode).toBe(401);
     expect(res.body).toHaveProperty('message', 'Token inválido!');
