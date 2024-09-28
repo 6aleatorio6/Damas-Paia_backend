@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtAuthService } from 'src/auth/jwt.service';
-import { OAuth2ProviderCb, OAuth2ProviderService } from './oauth2-providers.service';
+import { OAuth2ProviderReturn, OAuth2ProviderService } from './oauth2-providers.service';
 import { OAuth2 } from './entities/oauth2.entity';
 import { User } from 'src/user/entities/user.entity';
 
@@ -17,27 +17,26 @@ export class Oauth2Service {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  async signOrLogin(providerName: string, providerToken: string): Promise<string> {
-    const cb = this.getProvider(providerName);
-    const { providerId, username, avatar } = await cb(providerToken);
+  async signOrLogin(provider: string, authCode: string): Promise<string> {
+    const { providerId, username, avatar } = await this.callProvider(provider, authCode);
 
     const findUserByOauth = await this.oauth2Repo.findOne({
-      where: { providerName, providerId },
+      where: { providerName: provider, providerId },
       select: { user: { uuid: true } },
       relations: ['user'],
     });
 
     const oauthUser =
       findUserByOauth ??
-      (await this.createUserWithOAuth2(providerId, providerName, username, avatar));
+      (await this.createUserWithOAuth2(provider, providerId, username, avatar));
 
     if (!oauthUser?.user) throw new NotFoundException('Erro ao processar usuário OAuth.');
     return this.jwtService.signToken(oauthUser.user.uuid);
   }
 
   private async createUserWithOAuth2(
-    providerId: string,
     providerName: string,
+    providerId: string,
     username: string,
     avatar?: string,
   ) {
@@ -58,10 +57,18 @@ export class Oauth2Service {
     return exists ? `${baseName}${+suffixNumber + 1}` : username;
   }
 
-  private getProvider(providerName: string): OAuth2ProviderCb {
-    const cb = this.providersService[providerName];
-    if (!cb)
-      throw new BadRequestException(`Provedor OAuth2 '${providerName}' não encontrado.`);
-    return cb.bind(this.providersService);
+  private async callProvider(
+    provider: string,
+    authCode: string,
+  ): Promise<OAuth2ProviderReturn> {
+    const callback = this.providersService[provider].bind(this.providersService);
+    if (!callback) throw new BadRequestException('Provedor OAuth2 inválido.');
+
+    try {
+      return await callback(authCode);
+    } catch (error) {
+      console.error('Erro ao verificar o token de ID:', error);
+      throw new BadRequestException('Erro ao verificar o token de ID do ' + provider);
+    }
   }
 }
