@@ -33,4 +33,24 @@ export class OAuth2ProviderService {
       throw new BadRequestException('Erro ao verificar o token de ID do Google');
     }
   }
+
+  async facebook(access_token: string): ReturnType<OAuth2ProviderCb> {
+    // const APP_ID = this.configService.get('FACEBOOK_CLIENT_ID');
+    // const APP_SECRET = this.configService.get('FACEBOOK_CLIENT_SECRET');
+    try {
+      const res = await fetch(
+        `https://graph.facebook.com/v20.0/me?fields=id,name,short_name,picture&access_token=${access_token}`,
+      );
+
+      const profile = await res.json();
+      return {
+        providerId: profile.id,
+        username: profile.short_name || profile.name,
+        avatar: profile.picture.data.url,
+      };
+    } catch (error) {
+      console.error('Erro ao verificar o token de ID:', error);
+      throw new BadRequestException('Erro ao verificar o token de ID do Facebook');
+    }
+  }
 }
