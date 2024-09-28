@@ -14,8 +14,8 @@ export class OAuth2ProviderService {
 
   async google(idToken: string): ReturnType<OAuth2ProviderCb> {
     const oAuth2Client = new OAuth2Client(
-      this.configService.get('CLIENT_ID'),
-      this.configService.get('CLIENT_SECRET'),
+      this.configService.get('GOOGLE_CLIENT_ID'),
+      this.configService.get('GOOGLE_CLIENT_SECRET'),
     );
 
     // Obtenha as informações do usuário
