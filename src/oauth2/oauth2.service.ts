@@ -24,6 +24,7 @@ export class Oauth2Service {
     const findUserByOauth = await this.oauth2Repo.findOne({
       where: { providerName, providerId },
       select: { user: { uuid: true } },
+      relations: ['user'],
     });
 
     const oauthUser =
