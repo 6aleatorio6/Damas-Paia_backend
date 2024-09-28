@@ -55,7 +55,7 @@ export class Oauth2Service {
     const exists = await this.userRepo.findOne({ where: { username } });
 
     const [baseName, suffixNumber = 0] = username.slice(0, 39).split(/(\d+)$/);
-    return exists ? username : `${baseName}${+suffixNumber + 1}`;
+    return exists ? `${baseName}${+suffixNumber + 1}` : username;
   }
 
   private getProvider(providerName: string): OAuth2ProviderCb {
