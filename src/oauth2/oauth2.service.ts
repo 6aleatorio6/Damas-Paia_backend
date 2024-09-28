@@ -62,6 +62,6 @@ export class Oauth2Service {
     const cb = this.providersService[providerName];
     if (!cb)
       throw new BadRequestException(`Provedor OAuth2 '${providerName}' não encontrado.`);
-    return cb;
+    return cb.bind(this.providersService);
   }
 }
