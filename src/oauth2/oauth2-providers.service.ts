@@ -37,6 +37,7 @@ export class OAuth2ProviderService {
     );
 
     const profile = await res.json();
+    if (!res.ok) throw profile;
     return {
       providerId: profile.id,
       username: profile.short_name || profile.name,
@@ -44,9 +45,18 @@ export class OAuth2ProviderService {
     };
   }
 
-    } catch (error) {
-      console.error('Erro ao verificar o token de ID:', error);
-      throw new BadRequestException('Erro ao verificar o token de ID do Facebook');
-    }
+  async discord(access_token: string): Promise<OAuth2ProviderReturn> {
+    const resUser = await fetch('https://discord.com/api/users/@me', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    const profile = await resUser.json();
+    if (!resUser.ok) throw profile;
+
+    // Retorne as informações do usuário
+    return {
+      providerId: profile.id,
+      username: profile.username,
+      avatar: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`,
+    };
   }
 }
