@@ -129,9 +129,9 @@ describe('/match (CONTROLLER)', () => {
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveLength(3);
       expect(res.body).toEqual([
-        { username: expect.any(String), wins: '10' },
-        { username: expect.any(String), wins: '2' },
-        { username: expect.any(String), wins: '1' },
+        { username: expect.any(String), avatar: null, wins: '10' },
+        { username: expect.any(String), avatar: null, wins: '2' },
+        { username: expect.any(String), avatar: null, wins: '1' },
       ]);
     });
   });
