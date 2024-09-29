@@ -1,37 +1,60 @@
 <p align="center" >
-  <a href="http://nestjs.com/" target="blank"><img src="https://raw.githubusercontent.com/6aleatorio6/Damas-Paia_mobile/main/src/assets/icon.png" width="200" alt="DAMASPAIA Logo" /></a>
+  <a href="#" target="blank"><img src="https://raw.githubusercontent.com/6aleatorio6/Damas-Paia_mobile/main/src/assets/icon.png" width="200" alt="DAMASPAIA Logo" /></a>
 </p>
 
 <p>
-    <p align="center">Jogo de Damas online multiplataforma em desenvolvimento</p>
+    <p align="center">Jogo de Damas online multiplataforma</p>
 </p>
 
 ## Descrição
 
-Este é o repositório do backend do DamasPaia, um jogo de damas online desenvolvido com NestJS, TypeORM e PostgreSQL. O projeto busca oferecer uma cobertura de testes robusta no backend.
+Este é o repositório do backend do projeto **DamasPaia**, um jogo de damas online desenvolvido com **NestJS**, **TypeORM**, **Socket.io** e **PostgreSQL**. O projeto possui uma cobertura robusta de testes, tanto unitários quanto end-to-end.
 
 | Plataforma                                                   | Tecnologia   | Status       |
 | ------------------------------------------------------------ | ------------ | ------------ |
 | [Backend](https://github.com/6aleatorio6/Damas-Paia_backend) | NestJS       | Em andamento |
 | [Mobile](https://github.com/6aleatorio6/Damas-Paia_mobile)   | React Native | Em andamento |
 | Web                                                          | React        | Não iniciado |
-| Desktop                                                      | Não definido | Não iniciado |
 
-## Funcionalidades do Backend
 
-- [x] **Cadastro de Usuário:** Permite o registro de novos usuários no sistema.
-- [x] **Autenticação de Usuário:** Realiza autenticação via nome e senha, fornecendo um token JWT.
-- [x] **Manipulação de Usuário:** Rotas protegidas por token para obter, editar e excluir usuários.
-- [x] **Revalidação de Token:** Garante a revalidação de tokens expirados.
-- [x] **Conexões WebSocket Protegidas:** Implementa conexões WebSocket seguras com tokens.
-- [x] **Fila de Pareamento:** Gerencia a fila de jogadores para criação de partidas.
-- [x] **Exibição de Caminhos Disponíveis:** Mostra os caminhos disponíveis para as peças no tabuleiro.
-- [x] **Movimentação das Peças:** Permite a movimentação das peças no tabuleiro.
-- [x] **Validação dos Movimentos:** Valida os movimentos das peças de acordo com as regras do jogo.
-- [x] **Gerenciamento de Turnos:** Controle dos turnos dos jogadores durante a partida.
-- [ ] **Lógica de Finalização de Partidas:** Implementará a lógica para determinar e gerenciar o término de uma partida.
-- [ ] **Autenticação OAuth2:** Planejada integração com Google, Discord e GitHub.
-- [ ] **Outras Funcionalidades Planejadas:** Outras funcionalidades ainda estão em desenvolvimento.
+## Funcionalidades
+
+### Segurança
+
+- **Autenticação de Usuário:** Realiza autenticação via nome e senha, fornecendo um token JWT.
+- **Revalidação de Token:** Garante a revalidação de tokens expirados.
+- **Autenticação OAuth2:** Integração com provedores OAuth2 como Google, Discord e GitHub, permitindo que os usuários criem contas diretamente por esses provedores.
+- **Conexões WebSocket Protegidas:** Implementa conexões WebSocket seguras utilizando tokens.
+- **Desconfiança com o Frontend:** O backend utiliza o UUID do token para identificar o usuário, inclusive nas conexões WebSocket.
+
+### Jogo
+
+- **Peças:** Cada jogador inicia com 12 peças.
+- **Fila de Pareamento:** Gerencia a fila de jogadores que desejam criar uma partida.
+- **Exibição de Caminhos Disponíveis:** Indica os caminhos válidos que cada peça pode seguir no tabuleiro.
+- **Movimentação das Peças:** Permite que as peças sejam movidas ao longo do tabuleiro de acordo com as regras.
+- **Promoção para Damas:** Quando uma peça comum alcança a extremidade oposta do tabuleiro (y: 0 ou y: 7), ela se torna uma dama, ganhando movimentos adicionais.
+- **Validação dos Movimentos:** Cada movimento das peças é validado de acordo com as regras do jogo, garantindo jogadas legais.
+- **Gerenciamento de Turnos:** Controla a alternância de turnos entre os jogadores, garantindo que cada um jogue na sua vez.
+- **Finalização de Partida:**
+  - A partida termina automaticamente quando um jogador fica sem peças, resultando em sua derrota.
+  - A partida também pode terminar se um jogador desconectar do socket por um período maior que o definido em `TIMEOUT_TO_RECONNECT`, sendo declarado perdedor.
+  - Se uma partida permanecer em aberto com jogadores desconectados, o frontend pode chamar o endpoint `match/check-and-finish` para finalizá-la.
+- **Captura de Peças:** 
+  - As peças comuns podem capturar peças adversárias, inclusive realizando capturas para trás.
+  - A captura não é obrigatória; os jogadores têm a opção de não capturar.
+  - As peças podem realizar capturas em cadeia, permitindo que uma única peça capture múltiplas peças adversárias em sequência, mesmo que isso envolva curvas.
+- **Ranking de Partidas:** Permite obter uma classificação dos jogadores com base em suas performances em partidas anteriores.
+- **Histórico de Partidas:** Os jogadores podem acessar um registro de todas as suas partidas jogadas anteriormente.
+
+
+### Usuário
+
+- **Cadastro de Usuário:** Permite criar um novo usuário no sistema.
+- **Verificação de Usuário:** Verifica se o nome de usuário ou email já existe.
+- **Manipulação de Usuário:** Rotas protegidas por token para obter, editar e excluir usuários.
+
+
 
 ## Instalação
 
@@ -63,26 +86,32 @@ Para iniciar a aplicação com Docker Compose, utilize o seguinte comando:
 
 ## Testes
 
-Para executar os testes da aplicação, utilize os comandos abaixo:
+### Testes Unitários
 
-- **Testes unitários:**
+Atualmente, a aplicação possui **44 testes unitários**. Para executá-los, utilize o seguinte comando:
 
-  ```bash
-  npm run compose test
-  ```
+```bash
+npm run compose test
+```
 
-- **Testes de ponta a ponta (E2E):**
+### Testes E2E
 
-  ```bash
-  npm run compose test:e2e
-  ```
+A aplicação conta com **54 testes end-to-end**. Para executá-los, utilize o seguinte comando:
 
-- **Modo watch:** (para executar testes automaticamente ao detectar mudanças)
+```bash
+npm run compose test:e2e
+```
 
-  ```bash
-  npm run compose test:e2e -- --watch <pattern>
-  npm run compose test -- --watch <pattern>
-  ```
+### Modo Watch
+
+Para executar os testes automaticamente sempre que houver mudanças nos arquivos, utilize o modo watch. O comando a seguir permite que você especifique um padrão para os arquivos que deseja observar:
+
+```bash
+npm run compose test:e2e -- --watch <pattern>
+npm run compose test -- --watch <pattern>
+```
+
+Substitua <pattern> pelo caminho ou padrão de arquivos que deseja monitorar.
 
 ## Teste o Jogo de Damas com `demo.html`
 
