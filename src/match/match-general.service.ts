@@ -20,13 +20,16 @@ export class MatchService {
     return await this.matchRepository
       .createQueryBuilder('match')
       .where('winner IS NOT NULL')
-      .leftJoin('match.player1', 'winnerUser', ' match.winner = :p1', { p1: 'player1' })
-      .leftJoin('match.player2', 'winnerUser2', ' match.winner = :p2', { p2: 'player2' })
+      .leftJoin('match.player1', 'winnerUser', 'match.winner = :p1', { p1: 'player1' })
+      .leftJoin('match.player2', 'winnerUser2', 'match.winner = :p2', { p2: 'player2' })
       .groupBy('winnerUser.username')
       .addGroupBy('winnerUser2.username')
+      .addGroupBy('winnerUser.avatar') // se 2 user tiver o mesmo link de avatar provavelmente vai dar erro,
+      .addGroupBy('winnerUser2.avatar') // mas os avatares são fornecidos pelo oauth, que provavelmente tem links únicos
       .select('COUNT(*)', 'wins')
       .orderBy('wins', 'DESC')
       .addSelect('COALESCE(winnerUser.username, winnerUser2.username)', 'username')
+      .addSelect('COALESCE(winnerUser.avatar, winnerUser2.avatar)', 'avatar') // Add this line to select avatar
       .getRawMany();
   }
 
