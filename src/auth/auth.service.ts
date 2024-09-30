@@ -40,7 +40,8 @@ export class AuthService {
   public async refreshToken(token?: string) {
     const { payload, status } = this.jwtService.validateToken(token);
 
-    if (status != 'REFRESH') throw new UnauthorizedException('Token inválido!');
+    if (status === 'VALID') throw new BadRequestException('Token ainda é válido!');
+    if (status === 'INVALID') throw new UnauthorizedException('Token inválido!');
     const uuid = payload.uuid;
 
     // verifica se o usuario do token ainda existe
