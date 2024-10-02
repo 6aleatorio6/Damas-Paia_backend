@@ -142,10 +142,12 @@ async function createMatchInDb(playerWin: Players, numberOfWin = 1) {
   const player2 = await createUser();
 
   for (let i = 0; i < numberOfWin; i++) {
+    // o i % 2 é para alternar o vencedor entre player1 e player2, para testar o ranking
+    // assim eu testo se está agrupando corretamente um user que ganhou como player1 e player2
     const match = testApp.get(getRepositoryToken(Match)).create({
-      player1: { uuid: player1.uuid },
-      player2: { uuid: player2.uuid },
-      winner: playerWin,
+      player1: { uuid: i % 2 ? player1.uuid : player2.uuid },
+      player2: { uuid: i % 2 ? player2.uuid : player1.uuid },
+      winner: i % 2 ? playerWin : playerWin === 'player1' ? 'player2' : 'player1',
       winnerStatus: 'checkmate',
     });
     await testApp.get(getRepositoryToken(Match)).save(match);
