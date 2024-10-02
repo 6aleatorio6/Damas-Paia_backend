@@ -97,9 +97,7 @@ describe('AuthService', () => {
       // chamando o método para testar
       const refreshPromise = authService.refreshToken('paiaToken');
       return expect(refreshPromise).rejects.toThrow(
-        new UnauthorizedException(
-          'Sua conta não foi encontrada, faça login novamente',
-        ),
+        new UnauthorizedException('Sua conta não foi encontrada, faça login novamente'),
       );
     });
 
@@ -111,7 +109,7 @@ describe('AuthService', () => {
 
       const refreshPromise = authService.refreshToken('paiaToken');
       await expect(refreshPromise).rejects.toThrow(
-        new UnauthorizedException('Token inválido!'),
+        new UnauthorizedException('Token ainda é válido!'),
       );
     });
   });
