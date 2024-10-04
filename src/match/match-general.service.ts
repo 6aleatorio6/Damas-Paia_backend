@@ -27,6 +27,8 @@ export class MatchService {
       .select('COUNT(*)', 'wins')
       .addSelect('COALESCE(winnerUser.username, winnerUser2.username)', 'username')
       .addSelect('COALESCE(winnerUser.avatar, winnerUser2.avatar)', 'avatar')
+      .having('COALESCE(winnerUser.username, winnerUser2.username) is not null ')
+      .limit(20)
       .orderBy('wins', 'DESC')
       .getRawMany();
   }
