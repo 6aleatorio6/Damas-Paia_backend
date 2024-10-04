@@ -54,7 +54,9 @@ export class MatchService {
       ],
       relations: ['player1', 'player2'],
       order: { dateEnd: 'DESC' },
+      take: 50,
       select: {
+        uuid: true, // precisei adicionar o uuid para o take funcionar
         player1: { username: true, uuid: true },
         player2: { username: true, uuid: true },
         winner: true,
