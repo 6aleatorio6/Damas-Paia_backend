@@ -2,6 +2,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { Match } from 'src/match/entities/match.entity';
 import { Players } from 'src/match/match';
+import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 import * as request from 'supertest';
 import { testApp } from 'test/setup';
@@ -133,6 +134,24 @@ describe('/match (CONTROLLER)', () => {
         { username: expect.any(String), avatar: null, wins: '2' },
         { username: expect.any(String), avatar: null, wins: '1' },
       ]);
+    });
+
+    test('Não deve aparecer um user excluido no ranking', async () => {
+      await createMatchInDb('player1', 10);
+      await createMatchInDb('player1', 2);
+      await createMatchInDb('player2', 1);
+
+      const res = await reqRanking();
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toHaveLength(3);
+
+      await testApp
+        .get(getRepositoryToken(User))
+        .delete({ username: res.body[0].username });
+
+      const res2 = await reqRanking();
+      expect(res2.body).toHaveLength(2);
     });
   });
 });
